@@ -183,7 +183,18 @@ Based on [savaged/BlackNotepad](https://github.com/savaged/BlackNotepad) (archiv
 ## 🙏 Acknowledgments
 
 - Original [savaged/BlackNotepad](https://github.com/savaged/BlackNotepad) project
-- [Everything](https://www.voidtools.com/) for es.exe CLI tool
+- [OpenCode](https://github.com/anomalyco/opencode) - AI-powered development environment
+- [Minimax](https://www.minimaxi.com/) - Creators of the M2.1 AI model used in development
+
+### AI Modernization
+
+This fork has been modernized using AI assistance. Notable improvements include:
+- File association fix (double-clicked files now open correctly)
+- Find function bug fixes (position 0 and last occurrence handling)
+- Multiple code quality improvements
+- Enhanced documentation
+
+AI tools used: Claude (Anthropic) and Minimax M2.1
 
 ---
 
