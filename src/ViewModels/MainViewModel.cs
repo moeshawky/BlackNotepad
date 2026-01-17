@@ -684,14 +684,21 @@ namespace Savaged.BlackNotepad.ViewModels
             }
             var text = SelectedItem.Content;
             var replacement = _replaceDialog?.ReplacementText;
+
             if (_isFindMatchCase)
             {
-                text = Regex.Replace(
-                    text, TextSought, replacement, RegexOptions.IgnoreCase);
+                // Case sensitive: Use string.Replace (Faster, Correct literal handling)
+                text = text.Replace(TextSought, replacement);
             }
             else
             {
-                text = Regex.Replace(text, TextSought, replacement);
+                // Case insensitive: Use Regex with IgnoreCase
+                // Escape TextSought to treat as literal pattern
+                // Escape replacement $ to treat as literal substitution
+                var pattern = Regex.Escape(TextSought);
+                var safeReplacement = replacement.Replace("$", "$$");
+                text = Regex.Replace(
+                    text, pattern, safeReplacement, RegexOptions.IgnoreCase);
             }
             SelectedItem.Content = text;
         }
