@@ -1,0 +1,82 @@
+﻿<local:Dialog x:Class="Savaged.BlackNotepad.Views.ReplaceDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Savaged.BlackNotepad.Views"
+        xmlns:converters="clr-namespace:Savaged.BlackNotepad.Converters"
+        xmlns:controls="clr-namespace:Savaged.BlackNotepad.Views.Controls"
+        mc:Ignorable="d"
+        Title="Replace" 
+        Height="185" Width="375"
+        WindowStyle="ToolWindow"
+        ResizeMode="NoResize"
+        Background="{DynamicResource StandOutBackgroundBrush}"
+        Topmost="True"
+        Loaded="OnLoaded">
+    <Window.CommandBindings>
+        <CommandBinding Command="Close" 
+                        Executed="OnCloseCommandExecuted" />
+    </Window.CommandBindings>
+    <Window.InputBindings>
+        <KeyBinding Command="Close" Key="Esc" />
+        <KeyBinding Gesture="Ctrl+G" Command="{Binding GoToCmd}"/>
+        <KeyBinding Gesture="Ctrl+F" Command="{Binding FindCmd}"/>
+    </Window.InputBindings>
+    <Window.Resources>
+        <converters:BoolToRadioButtonCheckedConverter x:Key="InverseBoolConverter"/>
+    </Window.Resources>
+    
+    <Grid Margin="5">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="270"/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+
+        <Grid Grid.Column="0">
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+            <StackPanel Grid.Row="0">
+                <controls:TextSoughtInputControl x:Name="TextSoughtInput"/>
+                <StackPanel Margin="0,5,0,0"
+                            Orientation="Horizontal"
+                            Height="22"
+                            VerticalAlignment="Top">
+                    <TextBlock Width="80">
+                <AccessText>Re_place with:</AccessText>
+                    </TextBlock>
+                    <TextBox Name="ReplaceText"
+                             Width="188"
+                             Text="{Binding ReplacementText, UpdateSourceTrigger=PropertyChanged}"/>
+                </StackPanel>
+            </StackPanel>
+            <controls:FindFiltersControl Grid.Row="1"/>
+        </Grid>
+
+        <StackPanel Grid.Column="1"
+                    HorizontalAlignment="Right">
+            <Button Name="FindButton"
+                    Margin="0"
+                    IsDefault="True" 
+                    Click="OnFindButtonClick"
+                    IsEnabled="{Binding IsActionEnabled}">
+                <AccessText>_Find Next</AccessText>
+            </Button>
+            <Button Name="ReplaceButton"
+                    Margin="0,5,0,0"
+                    Click="OnReplaceButtonClick"
+                    IsEnabled="{Binding IsReplaceEnabled}">
+                <AccessText>_Replace</AccessText>
+            </Button>
+            <Button Name="ReplaceAllButton"
+                    Margin="0,5,0,0"
+                    Click="OnReplaceAllButtonClick"
+                    IsEnabled="{Binding IsReplaceEnabled}">
+                <AccessText>Replace _All</AccessText>
+            </Button>
+            <controls:CancelButtonControl x:Name="CancelButtonCtrl" Margin="0,5,0,0"/>
+        </StackPanel>
+    </Grid>
+</local:Dialog>

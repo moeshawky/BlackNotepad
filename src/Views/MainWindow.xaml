@@ -1,0 +1,195 @@
+﻿<Window x:Class="Savaged.BlackNotepad.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:converters="clr-namespace:Savaged.BlackNotepad.Converters"
+        mc:Ignorable="d"
+        Title="{Binding Title}" 
+        Background="{DynamicResource MainBackgroundBrush}"
+        Height="600" Width="800"
+        Loaded="OnLoaded"
+        Closing="OnClosing">
+    <Window.Resources>
+        <converters:CoordsToDisplayNameConverter x:Key="CoordsConverter"/>
+        <converters:LineEndingEnumToDisplayNameConverter x:Key="LineEndingConverter"/>
+        <converters:TrueFalseToWrapNoWrapConverter x:Key="BoolToWrappingConverter"/>
+        <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+    </Window.Resources>
+    <Window.InputBindings>
+        <KeyBinding Gesture="Ctrl+N" Command="{Binding NewCmd}"/>
+        <KeyBinding Gesture="Ctrl+O" Command="{Binding OpenCmd}"/>
+        <KeyBinding Gesture="Ctrl+S" Command="{Binding SaveCmd}"/>
+        <KeyBinding Gesture="Ctrl+G" Command="{Binding GoToCmd}"/>
+        <KeyBinding Gesture="Ctrl+F" Command="{Binding FindCmd}"/>
+        <KeyBinding Key="F3" Command="{Binding FindNextCmd}"/>
+        <KeyBinding Key="Esc" Command="{Binding EscCmd}"/>
+        <KeyBinding Gesture="Ctrl+H" Command="{Binding ReplaceCmd}"/>
+        <KeyBinding Key="F5" Command="{Binding TimeDateCmd}"/>
+        <KeyBinding Key="F12" Command="{Binding PrettifyJsonCmd}"/>
+        <KeyBinding Gesture="Ctrl+Plus" Command="{Binding ZoomInCmd}"/>
+        <KeyBinding Gesture="Ctrl+Minus" Command="{Binding ZoomOutCmd}"/>
+        <KeyBinding Gesture="Ctrl+0" Command="{Binding RestoreDefaultZoomCmd}"/>
+        <KeyBinding Key="F1" Command="{Binding HelpCmd}"/>
+    </Window.InputBindings>
+    <DockPanel FocusManager.FocusedElement="{Binding ElementName=ContentText}">
+        <Menu DockPanel.Dock="Top" Margin="0,0,0.4,0" Background="DarkGray">
+            <Menu.Resources>
+                <Style TargetType="MenuItem" x:Key="FontColourMenu">
+                    <Setter Property="Header" Value="{Binding Value}"/>
+                    <Setter Property="Command" 
+                            Value="{Binding DataContext.FontColourCmd, RelativeSource={RelativeSource AncestorType={x:Type Menu}}}"/>
+                    <Setter Property="CommandParameter" Value="{Binding}"/>
+                    <Setter Property="IsChecked" Value="{Binding IsSelected}"/>
+                </Style>
+                <Style TargetType="MenuItem" x:Key="FontFamilyMenu">
+                    <Setter Property="Header" Value="{Binding Value}"/>
+                    <Setter Property="Command" 
+                            Value="{Binding DataContext.FontFamilyCmd, RelativeSource={RelativeSource AncestorType={x:Type Menu}}}"/>
+                    <Setter Property="CommandParameter" Value="{Binding}"/>
+                    <Setter Property="IsChecked" Value="{Binding IsSelected}"/>
+                </Style>
+            </Menu.Resources>
+            <MenuItem Header="_File">
+                <MenuItem Header="_New" 
+                          Command="{Binding NewCmd}" 
+                          InputGestureText="Ctrl+N"/>
+                <MenuItem Header="_Open..." 
+                          Command="{Binding OpenCmd}" 
+                          InputGestureText="Ctrl+O"/>
+                <MenuItem Header="_Save" 
+                          Command="{Binding SaveCmd}" 
+                          InputGestureText="Ctrl+S"/>
+                <MenuItem Header="Save _As..." 
+                          Command="{Binding SaveAsCmd}"/>
+                <Separator/>
+                <MenuItem Header="E_xit" 
+                          Command="{Binding ExitCmd}"/>
+            </MenuItem>
+            <MenuItem Header="_Edit">
+                <MenuItem Header="Undo" 
+                          Click="OnUndoMenuItemClick" 
+                          InputGestureText="Ctrl+Z"
+                          IsEnabled="{Binding IsUndoEnabled}"/>
+                <Separator/>
+                <MenuItem Header="Cu_t" 
+                          Click="OnCutMenuItemClick" 
+                          InputGestureText="Ctrl+X"
+                          IsEnabled="{Binding IsCutOrCopyEnabled}"/>
+                <MenuItem Header="_Copy" 
+                          Click="OnCopyMenuItemClick" 
+                          InputGestureText="Ctrl+C"
+                          IsEnabled="{Binding IsCutOrCopyEnabled}"/>
+                <MenuItem Header="_Paste" 
+                          Click="OnPasteMenuItemClick"
+                          InputGestureText="Ctrl+V"
+                          IsEnabled="{Binding IsPasteEnabled}"/>
+                <Separator/>
+                <MenuItem Header="_Find..." 
+                          Command="{Binding FindCmd}" 
+                          InputGestureText="Ctrl+F"/>
+                <MenuItem Header="Find _Next" 
+                          Command="{Binding FindNextCmd}" 
+                          InputGestureText="F3"/>
+                <MenuItem Header="_Replace..." 
+                          Command="{Binding ReplaceCmd}" 
+                          InputGestureText="Ctrl+H"/>
+                <MenuItem Header="_Go To..." 
+                          Command="{Binding GoToCmd}" 
+                          InputGestureText="Ctrl+G"/>
+                <Separator/>
+                <MenuItem Header="Select _All..." 
+                          Click="OnSelectAllMenuItemClick"
+                          InputGestureText="Ctrl+A"
+                          IsEnabled="{Binding IsSelectAllEnabled}"/>
+                <MenuItem Header="Time/_Date" 
+                          Command="{Binding TimeDateCmd}" 
+                          InputGestureText="F5"/>
+                <MenuItem Header="Prettify Json"
+                          Command="{Binding PrettifyJsonCmd}"
+                          InputGestureText="F12"/>
+            </MenuItem>
+            <MenuItem Header="F_ormat">
+                <MenuItem Header="_Word Wrap" 
+                          Command="{Binding WordWrapCmd}" 
+                          IsChecked="{Binding ViewState.IsWrapped}"/>
+                <MenuItem Header="_Font"
+                          ItemsSource="{Binding FontFamilyNames}"
+                          ItemContainerStyle="{StaticResource FontFamilyMenu}"/>
+                <MenuItem Header="Font _Colour"
+                          ItemsSource="{Binding FontColours}"
+                          ItemContainerStyle="{StaticResource FontColourMenu}"/>
+            </MenuItem>
+            <MenuItem Header="_View">
+                <MenuItem Header="_Zoom">
+                    <MenuItem Header="Zoom _In" 
+                              Command="{Binding ZoomInCmd}" 
+                              InputGestureText="Ctrl+Plus"/>
+                    <MenuItem Header="Zoom _Out" 
+                              Command="{Binding ZoomOutCmd}" 
+                              InputGestureText="Ctrl+Minus"/>
+                    <MenuItem Header="_Restore Default Zoom" 
+                              Command="{Binding RestoreDefaultZoomCmd}" 
+                              InputGestureText="Ctrl+0"/>
+                </MenuItem>
+                <MenuItem Header="_Status Bar" 
+                          Command="{Binding StatusBarCmd}" 
+                          IsChecked="{Binding ViewState.IsStatusBarVisible}"/>
+            </MenuItem>
+            <MenuItem Header="_Help">
+                <MenuItem Header="_Help" Command="{Binding HelpCmd}"/>
+                <Separator/>
+                <MenuItem Header="_About" Command="{Binding AboutCmd}"/>
+            </MenuItem>
+        </Menu>
+        
+        <StatusBar Name="FeedbackStatus" 
+                   DockPanel.Dock="Bottom"
+                   Background="{StaticResource StandOutBackgroundBrush}"
+                   Visibility="{Binding ViewState.IsStatusBarVisible, Converter={StaticResource BoolToVisibilityConverter}}" >
+            <StatusBar.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="3*"/>
+                            <ColumnDefinition Width="1*"/>
+                            <ColumnDefinition Width="1*"/>
+                            <ColumnDefinition Width="1*"/>
+                        </Grid.ColumnDefinitions>
+                    </Grid>
+                </ItemsPanelTemplate>
+            </StatusBar.ItemsPanel>
+            <StatusBarItem Grid.Column="0">
+                <TextBlock Text="Busy..." 
+                           Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibilityConverter}}"/>
+            </StatusBarItem>
+            <StatusBarItem Grid.Column="1">
+                <TextBlock Text="{Binding SelectedItem.LineEnding, Converter={StaticResource LineEndingConverter}}"/>
+            </StatusBarItem>
+            <StatusBarItem Grid.Column="2">
+                <TextBlock Text="{Binding CaretPosition, Converter={StaticResource CoordsConverter}}"/>
+            </StatusBarItem>
+            <StatusBarItem Grid.Column="3">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="{Binding ViewState.SelectedFontZoom.Zoom}"/>
+                    <TextBlock>%</TextBlock>
+                </StackPanel>
+            </StatusBarItem>
+        </StatusBar>
+        
+        <TextBox Name="ContentText" 
+                 Background="{DynamicResource MainBackgroundBrush}" 
+                 VerticalScrollBarVisibility="Auto"
+                 HorizontalScrollBarVisibility="Auto"
+                 AcceptsReturn="True" AcceptsTab="True"   
+                 SelectionChanged="OnContentTextSelectionChanged"        
+                 AllowDrop="True" 
+                 PreviewDragOver="OnContentTextPreviewDragOver"
+                 PreviewDrop="OnContentTextPreviewDrop"
+                 FontFamily="{Binding ViewState.SelectedFontFamily.Key}"
+                 Foreground="{Binding ViewState.SelectedFontColour.Key}"
+                 FontSize="{Binding ViewState.SelectedFontZoom.FontSize}"
+                 TextWrapping="{Binding ViewState.IsWrapped, Converter={StaticResource BoolToWrappingConverter}}"
+                 Text="{Binding SelectedItem.Content, UpdateSourceTrigger=PropertyChanged}"/>
+    </DockPanel>
+</Window>
