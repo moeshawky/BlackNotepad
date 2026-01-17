@@ -194,7 +194,7 @@ This fork has been modernized using AI assistance. Notable improvements include:
 - Multiple code quality improvements
 - Enhanced documentation
 
-AI tools used: Claude (Anthropic) and Minimax M2.1
+AI Models used: Minimax M2.1
 
 ---
 
