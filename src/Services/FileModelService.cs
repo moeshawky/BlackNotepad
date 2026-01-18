@@ -42,38 +42,29 @@ namespace Savaged.BlackNotepad.Services
             {
                 return;
             }
-            var contentBuilder = new StringBuilder();
+
             var lineEnding = LineEndings._;
             using (var sr = new StreamReader(fileModel.Location))
             {
-                var p = 0;
-                while (p != -1)
-                {
-                    var i = sr.Read();
-                    var c = (char)i;
-                    contentBuilder.Append(c);
-                    p = sr.Peek();
-
-                    if (lineEnding == LineEndings._)
-                    {
-                        if (i == '\r' && p == '\n')
-                        {
-                            lineEnding = LineEndings.CRLF;
-                        }
-                        else if (i == '\n' && p == -1)
-                        {
-                            lineEnding = LineEndings.LF;
-                        }
-                        else if (i == '\r' && p == -1)
-                        {
-                            lineEnding = LineEndings.CR;
-                        }
-                    }
-                }
-                sr.Close();
+                fileModel.Content = sr.ReadToEnd();
             }
+
+            // Optimization: Detect line endings from the loaded string
+            // instead of character-by-character reading which is slow.
+            if (fileModel.Content.Contains("\r\n"))
+            {
+                lineEnding = LineEndings.CRLF;
+            }
+            else if (fileModel.Content.EndsWith("\n"))
+            {
+                lineEnding = LineEndings.LF;
+            }
+            else if (fileModel.Content.EndsWith("\r"))
+            {
+                lineEnding = LineEndings.CR;
+            }
+
             fileModel.LineEnding = lineEnding;
-            fileModel.Content = contentBuilder.ToString();
             fileModel.IsDirty = false;
         }
     }
