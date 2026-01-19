@@ -4,6 +4,7 @@ using Moq;
 using Savaged.BlackNotepad.Models;
 using Savaged.BlackNotepad.Services;
 using Savaged.BlackNotepad.ViewModels;
+using System.Threading.Tasks;
 
 namespace BlackNotepad.Test.ViewModelTests
 {
@@ -85,7 +86,10 @@ namespace BlackNotepad.Test.ViewModelTests
             _dialogService = MockDialogService.Object;
 
             var mockFileModelService = new Mock<IFileModelService>();
-            // TODO mock Load and Save
+            mockFileModelService.Setup(s => s.LoadAsync(It.IsAny<string>()))
+                .Returns(Task.FromResult(new FileModel()));
+            mockFileModelService.Setup(s => s.SaveAsync(It.IsAny<FileModel>()))
+                .Returns(Task.CompletedTask);
             _fileModelService = mockFileModelService.Object;
 
             MainVm = new MainViewModel(
