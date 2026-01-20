@@ -1,7 +1,6 @@
-﻿using Savaged.BlackNotepad.Lookups;
+using Savaged.BlackNotepad.Lookups;
 using Savaged.BlackNotepad.Models;
 using System.IO;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Savaged.BlackNotepad.Services
@@ -42,38 +41,37 @@ namespace Savaged.BlackNotepad.Services
             {
                 return;
             }
-            var contentBuilder = new StringBuilder();
-            var lineEnding = LineEndings._;
+
+            string content;
+            // Optimization: Use ReadToEnd for much faster file reading than char-by-char
+            // This also fixes a bug where empty files resulted in "\uFFFF" content
             using (var sr = new StreamReader(fileModel.Location))
             {
-                var p = 0;
-                while (p != -1)
-                {
-                    var i = sr.Read();
-                    var c = (char)i;
-                    contentBuilder.Append(c);
-                    p = sr.Peek();
-
-                    if (lineEnding == LineEndings._)
-                    {
-                        if (i == '\r' && p == '\n')
-                        {
-                            lineEnding = LineEndings.CRLF;
-                        }
-                        else if (i == '\n' && p == -1)
-                        {
-                            lineEnding = LineEndings.LF;
-                        }
-                        else if (i == '\r' && p == -1)
-                        {
-                            lineEnding = LineEndings.CR;
-                        }
-                    }
-                }
-                sr.Close();
+                content = sr.ReadToEnd();
             }
+
+            var lineEnding = LineEndings._;
+
+            // Optimization: Use fast string search/check instead of per-char loop
+            // Logic preserved:
+            // 1. CRLF anywhere in the file -> CRLF
+            // 2. LF at the very end (and no CRLF) -> LF
+            // 3. CR at the very end (and no CRLF) -> CR
+            if (content.Contains("\r\n"))
+            {
+                lineEnding = LineEndings.CRLF;
+            }
+            else if (content.EndsWith("\n"))
+            {
+                lineEnding = LineEndings.LF;
+            }
+            else if (content.EndsWith("\r"))
+            {
+                lineEnding = LineEndings.CR;
+            }
+
             fileModel.LineEnding = lineEnding;
-            fileModel.Content = contentBuilder.ToString();
+            fileModel.Content = content;
             fileModel.IsDirty = false;
         }
     }
