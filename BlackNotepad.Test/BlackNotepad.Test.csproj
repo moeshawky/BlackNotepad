@@ -89,7 +89,6 @@
     <Compile Include="ViewModelTests\TestBase.cs" />
     <Compile Include="UnitTests\CoordsToDisplayNameConverterTests.cs" />
     <Compile Include="UnitTests\LineEndingEnumToDisplayNameConverterTests.cs" />
-    <Compile Include="UnitTests\FileModelServiceTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
