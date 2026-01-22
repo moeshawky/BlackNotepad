@@ -1,6 +1,7 @@
 ﻿using Savaged.BlackNotepad.Lookups;
 using Savaged.BlackNotepad.Models;
 using System.IO;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace Savaged.BlackNotepad.Services
@@ -55,7 +56,7 @@ namespace Savaged.BlackNotepad.Services
             // We replicate this behavior to ensure strict backward compatibility.
             if (string.IsNullOrEmpty(content))
             {
-                content = "\uFFFF";
+                content = ((char)-1).ToString();
             }
 
             // Preserve legacy line ending detection logic:
