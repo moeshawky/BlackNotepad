@@ -498,9 +498,9 @@ namespace Savaged.BlackNotepad.ViewModels
 
             var isFindDirectionUp =
                 _findDialog?.IsFindDirectionUp == true;
-
-            int indexOfTextFound = -1;
-
+            string textToSearch;
+            var startOfTextToSearch = 0;
+            var endOfTextToSearch = 0;
             if (isFindDirectionUp)
             {
                 if (IndexOfCaret == 0)
@@ -516,18 +516,10 @@ namespace Savaged.BlackNotepad.ViewModels
                         return;
                     }
                 }
+                endOfTextToSearch = IndexOfCaret;
 
-                // Search backwards from IndexOfCaret - 1
-                // Count is IndexOfCaret (length of substring from 0 to caret)
-                // Optimization: Use LastIndexOf on allText with range, avoiding Substring allocation
-                var searchEndIndex = IndexOfCaret;
-                if (searchEndIndex > allText.Length) searchEndIndex = allText.Length;
-
-                // Ensure we don't pass a negative index (though IndexOfCaret == 0 is handled above)
-                if (searchEndIndex > 0)
-                {
-                    indexOfTextFound = allText.LastIndexOf(textSought, searchEndIndex - 1, searchEndIndex);
-                }
+                textToSearch = allText
+                    .Substring(startOfTextToSearch, endOfTextToSearch);
             }
             else
             {
@@ -544,8 +536,6 @@ namespace Savaged.BlackNotepad.ViewModels
                         return;
                     }
                 }
-
-                int startOfTextToSearch;
                 if (_findNextCount > 0)
                 {
                     startOfTextToSearch = 
@@ -555,9 +545,32 @@ namespace Savaged.BlackNotepad.ViewModels
                 {
                     startOfTextToSearch = IndexOfCaret;
                 }
+                endOfTextToSearch =
+                    allText.Length - startOfTextToSearch;
 
-                // Optimization: Use IndexOf on allText with startIndex, avoiding Substring allocation
-                indexOfTextFound = allText.IndexOf(textSought, startOfTextToSearch);
+                textToSearch = allText.Substring(
+                    startOfTextToSearch, endOfTextToSearch);
+            }
+
+            var lengthOfTextExcluded =
+                    allText.Length - textToSearch.Length;
+            int indexOfTextFound;
+
+            var indexOfTextFoundInTextToSearch = 0;
+            if (isFindDirectionUp)
+            {
+                indexOfTextFoundInTextToSearch =
+                    textToSearch.LastIndexOf(textSought);
+
+                indexOfTextFound = indexOfTextFoundInTextToSearch;
+            }
+            else
+            {
+                indexOfTextFoundInTextToSearch =
+                    textToSearch.IndexOf(textSought);
+
+                indexOfTextFound = lengthOfTextExcluded +
+                    indexOfTextFoundInTextToSearch;
             }
             if (indexOfTextFound > 0)
             {

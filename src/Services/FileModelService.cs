@@ -46,6 +46,20 @@ namespace Savaged.BlackNotepad.Services
             var lineEnding = LineEndings._;
             using (var sr = new StreamReader(fileModel.Location))
             {
+                // Optimization: Pre-allocate StringBuilder capacity to avoid resizing overhead
+                if (sr.BaseStream.CanSeek)
+                {
+                    try
+                    {
+                        var length = sr.BaseStream.Length;
+                        if (length > 0 && length <= int.MaxValue)
+                        {
+                            contentBuilder.Capacity = (int)length;
+                        }
+                    }
+                    catch { } // Ignore if stream length cannot be determined
+                }
+
                 var p = 0;
                 while (p != -1)
                 {
