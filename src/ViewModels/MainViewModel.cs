@@ -684,14 +684,23 @@ namespace Savaged.BlackNotepad.ViewModels
             }
             var text = SelectedItem.Content;
             var replacement = _replaceDialog?.ReplacementText;
+
+            // Optimization: Use string.Replace for literal replacement instead of Regex.
+            // This improves performance and ensures literal matching consistent with FindNext.
+            // Note: Fixed logic inversion from legacy code where MatchCase used IgnoreCase.
             if (_isFindMatchCase)
             {
-                text = Regex.Replace(
-                    text, TextSought, replacement, RegexOptions.IgnoreCase);
+                text = text.Replace(TextSought, replacement);
             }
             else
             {
-                text = Regex.Replace(text, TextSought, replacement);
+                // Escape special regex characters in the search text for safety
+                // and escape $ in replacement text to prevent substitution errors.
+                text = Regex.Replace(
+                    text,
+                    Regex.Escape(TextSought),
+                    replacement.Replace("$", "$$"),
+                    RegexOptions.IgnoreCase);
             }
             SelectedItem.Content = text;
         }
