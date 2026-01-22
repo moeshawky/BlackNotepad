@@ -50,14 +50,6 @@ namespace Savaged.BlackNotepad.Services
                 content = sr.ReadToEnd();
             }
 
-            // Legacy Compatibility: The previous implementation using StreamReader.Read() in a loop
-            // would append (char)-1 (\uFFFF) if the file was empty (immediate EOF).
-            // We replicate this behavior to ensure strict backward compatibility.
-            if (string.IsNullOrEmpty(content))
-            {
-                content = ((char)-1).ToString();
-            }
-
             // Preserve legacy line ending detection logic:
             // - CRLF is detected anywhere
             // - LF or CR are only detected if they appear at the very end
