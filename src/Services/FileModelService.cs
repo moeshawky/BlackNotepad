@@ -19,7 +19,7 @@ namespace Savaged.BlackNotepad.Services
             {
                 Location = location
             };
-            await ReadFileAsync(fileModel);
+            await Task.Run(() => ReadFile(fileModel));
             
             return fileModel;
         }
@@ -35,7 +35,7 @@ namespace Savaged.BlackNotepad.Services
             fileModel.IsDirty = false;
         }
 
-        private async Task ReadFileAsync(FileModel fileModel)
+        private void ReadFile(FileModel fileModel)
         {
             if (string.IsNullOrEmpty(fileModel.Location)
                 || string.IsNullOrWhiteSpace(fileModel.Location))
@@ -43,12 +43,12 @@ namespace Savaged.BlackNotepad.Services
                 return;
             }
 
-            // Optimization: Use ReadToEndAsync for bulk reading instead of character-by-character
+            // Optimization: Use ReadToEnd for bulk reading instead of character-by-character
             // to improve performance and avoid overhead.
             string content;
             using (var sr = new StreamReader(fileModel.Location))
             {
-                content = await sr.ReadToEndAsync();
+                content = sr.ReadToEnd();
             }
 
             // Preserve legacy line ending detection logic:
