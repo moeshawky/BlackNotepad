@@ -5,7 +5,7 @@ using Savaged.BlackNotepad.Services;
 using System.IO;
 using System.Threading.Tasks;
 
-namespace BlackNotepad.Test.Services
+namespace BlackNotepad.Test.UnitTests
 {
     [TestClass]
     public class FileModelServiceTests
