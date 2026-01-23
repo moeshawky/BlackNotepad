@@ -686,12 +686,15 @@ namespace Savaged.BlackNotepad.ViewModels
             var replacement = _replaceDialog?.ReplacementText;
             if (_isFindMatchCase)
             {
-                text = Regex.Replace(
-                    text, TextSought, replacement, RegexOptions.IgnoreCase);
+                text = text.Replace(TextSought, replacement);
             }
             else
             {
-                text = Regex.Replace(text, TextSought, replacement);
+                text = Regex.Replace(
+                    text,
+                    Regex.Escape(TextSought),
+                    replacement.Replace("$", "$$"),
+                    RegexOptions.IgnoreCase);
             }
             SelectedItem.Content = text;
         }
