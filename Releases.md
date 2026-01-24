@@ -1,4 +1,4 @@
-# Release Packages
+﻿# Release Packages
 
 Release packages are available as GitHub Releases: https://github.com/moeshawky/BlackNotepad/releases
 
@@ -17,14 +17,14 @@ The `Distribution/Portable/` folder contains all files needed to run BlackNotepa
 
 ```
 Distribution/Portable/
-├── BlackNotepad.exe       # Main application
-├── BlackNotepad.exe.config
-├── GalaSoft.MvvmLight.*   # MVVM framework
-├── Newtonsoft.Json.*      # JSON library
-├── CommonServiceLocator.dll
-├── System.Windows.Interactivity.dll
-├── logo.ico / logo.png
-└── README-PORTABLE.md
+â”œâ”€â”€ BlackNotepad.exe       # Main application
+â”œâ”€â”€ BlackNotepad.exe.config
+â”œâ”€â”€ GalaSoft.MvvmLight.*   # MVVM framework
+â”œâ”€â”€ Newtonsoft.Json.*      # JSON library
+â”œâ”€â”€ CommonServiceLocator.dll
+â”œâ”€â”€ System.Windows.Interactivity.dll
+â”œâ”€â”€ logo.ico / logo.png
+â””â”€â”€ README-PORTABLE.md
 ```
 
 ## Building from Source
@@ -43,3 +43,8 @@ msbuild src\BlackNotepad.csproj /p:Configuration=Release /p:TargetFrameworkVersi
 ```
 
 Output will be in: `src\bin\Release\BlackNotepad.exe`
+
+
+## Version History
+
+See [CHANGELOG.md](CHANGELOG.md) for a detailed list of changes.
