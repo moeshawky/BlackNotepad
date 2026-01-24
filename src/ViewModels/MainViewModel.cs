@@ -686,15 +686,12 @@ namespace Savaged.BlackNotepad.ViewModels
             var replacement = _replaceDialog?.ReplacementText;
             if (_isFindMatchCase)
             {
-                // Legacy behavior: "Match Case" enabled actually triggers IgnoreCase (Logic Inversion preserved).
                 text = Regex.Replace(
                     text, TextSought, replacement, RegexOptions.IgnoreCase);
             }
             else
             {
-                // Legacy behavior: "Match Case" disabled -> Case Sensitive.
-                // Optimization: Use string.Replace for faster literal replacement.
-                text = text.Replace(TextSought, replacement);
+                text = Regex.Replace(text, TextSought, replacement);
             }
             SelectedItem.Content = text;
         }
