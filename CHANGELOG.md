@@ -1,8 +1,8 @@
-﻿# Changelog
+# Changelog
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
+## [1.0.10] - 2026-01-24
 
 ### Performance
 - Optimized ReplaceAll functionality:
