@@ -18,7 +18,13 @@ namespace Savaged.BlackNotepad.Views
         {
             _viewModel = DataContext as MainViewModel;
             _viewModel.GoToRequested += OnGoToRequested;
-            _viewModel.FocusRequested += OnFocusRequested;         
+            _viewModel.FocusRequested += OnFocusRequested;
+            _viewModel.TimeDateRequested += OnTimeDateRequested;
+        }
+
+        private void OnTimeDateRequested()
+        {
+            ContentText.AppendText(System.DateTime.Now.ToString("HH:mm yyyy-MM-dd"));
         }
 
         private void OnGoToRequested(
@@ -73,8 +79,9 @@ namespace Savaged.BlackNotepad.Views
                 {
                     _viewModel.GoToRequested -= OnGoToRequested;
                     _viewModel.FocusRequested -= OnFocusRequested;
+                    _viewModel.TimeDateRequested -= OnTimeDateRequested;
                     Application.Current.Shutdown();
-                } 
+                }
             }
             e.Cancel = true;
         }

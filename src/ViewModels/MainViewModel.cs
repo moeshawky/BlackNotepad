@@ -343,6 +343,8 @@ namespace Savaged.BlackNotepad.ViewModels
 
         public Action FocusRequested = delegate { };
 
+        public Action TimeDateRequested = delegate { };
+
         private void RaiseGoToRequested(
             int caretIndex, int selectionLength, int line)
         {
@@ -763,7 +765,7 @@ namespace Savaged.BlackNotepad.ViewModels
 
         private void OnTimeDate()
         {
-            SelectedItem.Content += DateTime.Now.ToString("HH:mm yyyy-MM-dd");
+            TimeDateRequested?.Invoke();
         }
 
         private void OnWordWrap()
