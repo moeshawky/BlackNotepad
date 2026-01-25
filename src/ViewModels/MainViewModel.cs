@@ -487,101 +487,81 @@ namespace Savaged.BlackNotepad.ViewModels
 
         private void FindNext()
         {
-            var textSought = _isFindMatchCase ?
-                TextSought : TextSought?.ToLower();
+            var textSought = TextSought;
+            var allText = SelectedItem.Content;
 
-            var allText = _isFindMatchCase ?
-                SelectedItem.Content : SelectedItem.Content?.ToLower();
-
-            if (!allText.Contains(textSought))
+            if (string.IsNullOrEmpty(textSought) || string.IsNullOrEmpty(allText))
             {
                 return;
             }
 
-            var isFindDirectionUp =
-                _findDialog?.IsFindDirectionUp == true;
-            string textToSearch;
-            var startOfTextToSearch = 0;
-            var endOfTextToSearch = 0;
+            // Bolt: Optimized find to avoid allocating lower-case copy of the entire content
+            var comparison = _isFindMatchCase ?
+                StringComparison.CurrentCulture : StringComparison.CurrentCultureIgnoreCase;
+
+            var isFindDirectionUp = _findDialog?.IsFindDirectionUp == true;
+            int foundIndex = -1;
+
             if (isFindDirectionUp)
             {
                 if (IndexOfCaret == 0)
                 {
                     if (_isFindWrapAround)
                     {
-                        IndexOfCaret = allText.Length;
-                        FindNext();
-                        return;
+                        // Wrap to end (search from end)
+                        int startIndex = allText.Length - textSought.Length;
+                        if (startIndex >= 0)
+                        {
+                            foundIndex = allText.LastIndexOf(textSought, startIndex, comparison);
+                        }
                     }
-                    else
-                    {
-                        return;
-                    }
-                }
-                endOfTextToSearch = IndexOfCaret;
-
-                textToSearch = allText
-                    .Substring(startOfTextToSearch, endOfTextToSearch);
-            }
-            else
-            {
-                if (IndexOfCaret >= allText.LastIndexOf(textSought))
-                {
-                    if (_isFindWrapAround)
-                    {
-                        IndexOfCaret = 0;
-                        FindNext();
-                        return;
-                    }
-                    else
-                    {
-                        return;
-                    }
-                }
-                if (_findNextCount > 0)
-                {
-                    startOfTextToSearch = 
-                        IndexOfCaret + textSought.Length;
                 }
                 else
                 {
-                    startOfTextToSearch = IndexOfCaret;
+                    // Search backwards from current caret
+                    int startIndex = IndexOfCaret - textSought.Length;
+                    if (startIndex >= 0)
+                    {
+                        foundIndex = allText.LastIndexOf(textSought, startIndex, comparison);
+                    }
                 }
-                endOfTextToSearch = 
-                    allText.Length - startOfTextToSearch;
-
-                textToSearch = allText.Substring(
-                    startOfTextToSearch, endOfTextToSearch);
-            }
-            
-            var lengthOfTextExcluded =
-                    allText.Length - textToSearch.Length;
-            int indexOfTextFound;
-
-            var indexOfTextFoundInTextToSearch = 0;
-            if (isFindDirectionUp)
-            {
-                indexOfTextFoundInTextToSearch =
-                    textToSearch.LastIndexOf(textSought);
-
-                indexOfTextFound = indexOfTextFoundInTextToSearch;
             }
             else
             {
-                indexOfTextFoundInTextToSearch =
-                    textToSearch.IndexOf(textSought);
+                int searchStart = (_findNextCount > 0) ?
+                    IndexOfCaret + textSought.Length : IndexOfCaret;
 
-                indexOfTextFound = lengthOfTextExcluded + 
-                    indexOfTextFoundInTextToSearch;
+                if (searchStart < allText.Length)
+                {
+                    foundIndex = allText.IndexOf(textSought, searchStart, comparison);
+                }
+
+                // Check for "At Last Match" edge case parity with legacy logic
+                // If found at current cursor position, and no further matches exist, wrap if enabled.
+                if (foundIndex != -1 && foundIndex == IndexOfCaret && _isFindWrapAround)
+                {
+                    int nextOne = allText.IndexOf(textSought, foundIndex + textSought.Length, comparison);
+                    if (nextOne == -1)
+                    {
+                        foundIndex = -1; // Force wrap
+                    }
+                }
+
+                if (foundIndex == -1 && _isFindWrapAround)
+                {
+                    // Wrap to beginning
+                    foundIndex = allText.IndexOf(textSought, 0, comparison);
+                }
             }
-            if (indexOfTextFound > 0)
+
+            if (foundIndex >= 0)
             {
                 _findNextCount++;
                 RaiseGoToRequested(
-                    indexOfTextFound, 
-                    textSought.Length, 
+                    foundIndex,
+                    textSought.Length,
                     allText.LineOfIndexOrDefault(
-                        indexOfTextFound,
+                        foundIndex,
                         SelectedItem.LineEnding));
             }
         }
