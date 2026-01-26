@@ -42,38 +42,40 @@ namespace Savaged.BlackNotepad.Services
             {
                 return;
             }
-            var contentBuilder = new StringBuilder();
+
             var lineEnding = LineEndings._;
+            string content;
+
+            // Bolt Optimization: Use ReadToEnd for O(1) loop overhead instead of char-by-char reading
             using (var sr = new StreamReader(fileModel.Location))
             {
-                var p = 0;
-                while (p != -1)
-                {
-                    var i = sr.Read();
-                    var c = (char)i;
-                    contentBuilder.Append(c);
-                    p = sr.Peek();
-
-                    if (lineEnding == LineEndings._)
-                    {
-                        if (i == '\r' && p == '\n')
-                        {
-                            lineEnding = LineEndings.CRLF;
-                        }
-                        else if (i == '\n' && p == -1)
-                        {
-                            lineEnding = LineEndings.LF;
-                        }
-                        else if (i == '\r' && p == -1)
-                        {
-                            lineEnding = LineEndings.CR;
-                        }
-                    }
-                }
+                content = sr.ReadToEnd();
                 sr.Close();
             }
+
+            // Legacy compatibility: Empty files must contain \uFFFF
+            if (content.Length == 0)
+            {
+                content = ((char)-1).ToString();
+            }
+            else
+            {
+                if (content.Contains("\r\n"))
+                {
+                    lineEnding = LineEndings.CRLF;
+                }
+                else if (content.EndsWith("\n"))
+                {
+                    lineEnding = LineEndings.LF;
+                }
+                else if (content.EndsWith("\r"))
+                {
+                    lineEnding = LineEndings.CR;
+                }
+            }
+
             fileModel.LineEnding = lineEnding;
-            fileModel.Content = contentBuilder.ToString();
+            fileModel.Content = content;
             fileModel.IsDirty = false;
         }
     }
