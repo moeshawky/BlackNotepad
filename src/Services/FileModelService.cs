@@ -42,38 +42,40 @@ namespace Savaged.BlackNotepad.Services
             {
                 return;
             }
-            var contentBuilder = new StringBuilder();
-            var lineEnding = LineEndings._;
+
+            // Optimization: Use ReadToEnd for faster I/O instead of char-by-char reading
+            string content;
             using (var sr = new StreamReader(fileModel.Location))
             {
-                var p = 0;
-                while (p != -1)
-                {
-                    var i = sr.Read();
-                    var c = (char)i;
-                    contentBuilder.Append(c);
-                    p = sr.Peek();
-
-                    if (lineEnding == LineEndings._)
-                    {
-                        if (i == '\r' && p == '\n')
-                        {
-                            lineEnding = LineEndings.CRLF;
-                        }
-                        else if (i == '\n' && p == -1)
-                        {
-                            lineEnding = LineEndings.LF;
-                        }
-                        else if (i == '\r' && p == -1)
-                        {
-                            lineEnding = LineEndings.CR;
-                        }
-                    }
-                }
-                sr.Close();
+                content = sr.ReadToEnd();
+                sr.Close(); // Explicit Close to match legacy style
             }
+
+            // Legacy quirk: Empty file returns \uFFFF
+            if (content.Length == 0)
+            {
+                content = unchecked((char)-1).ToString();
+            }
+
+            // Legacy detection logic preserved:
+            // CRLF detected anywhere in file
+            // LF or CR only detected if at the very end (and no CRLF found)
+            var lineEnding = LineEndings._;
+            if (content.Contains("\r\n"))
+            {
+                lineEnding = LineEndings.CRLF;
+            }
+            else if (content.EndsWith("\n", System.StringComparison.Ordinal))
+            {
+                lineEnding = LineEndings.LF;
+            }
+            else if (content.EndsWith("\r", System.StringComparison.Ordinal))
+            {
+                lineEnding = LineEndings.CR;
+            }
+
             fileModel.LineEnding = lineEnding;
-            fileModel.Content = contentBuilder.ToString();
+            fileModel.Content = content;
             fileModel.IsDirty = false;
         }
     }
