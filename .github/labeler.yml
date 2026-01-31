@@ -1,0 +1,11 @@
+performance:
+  - changed-files:
+      - any-glob-to-any-file: 'src/**/*.cs'
+
+ci:
+  - changed-files:
+      - any-glob-to-any-file: '.github/**'
+
+documentation:
+  - changed-files:
+      - any-glob-to-any-file: '**/*.md'

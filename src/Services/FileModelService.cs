@@ -2,7 +2,6 @@ using Savaged.BlackNotepad.Lookups;
 using Savaged.BlackNotepad.Models;
 using System;
 using System.IO;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Savaged.BlackNotepad.Services
