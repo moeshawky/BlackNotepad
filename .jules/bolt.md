@@ -11,3 +11,7 @@
 1. Empty files must load as a string containing `\uFFFF` (not empty string).
 2. Line ending detection is "CRLF anywhere" vs "LF/CR only at end of file".
 **Action:** Always replicate `\uFFFF` for empty content and verify line ending logic against `PerformanceTest` harness when refactoring.
+
+## 2025-02-21 - [CI Label Enforcement]
+**Learning:** `pr-labels.yml` fails PRs without labels. No manual way to label exists.
+**Action:** Always include `.github/workflows/auto-label.yml` and `.github/labeler.yml` when fixing CI failures related to missing labels.
