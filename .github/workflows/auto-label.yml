@@ -1,6 +1,7 @@
 name: "Auto Labeler"
 on:
   - pull_request_target
+  - pull_request
 
 jobs:
   triage:
@@ -13,3 +14,4 @@ jobs:
       with:
         repo-token: "${{ secrets.GITHUB_TOKEN }}"
         sync-labels: true
+        configuration-path: .github/labeler.yml

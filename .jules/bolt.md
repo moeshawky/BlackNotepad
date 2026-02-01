@@ -15,3 +15,7 @@
 ## 2025-02-21 - [CI Label Enforcement]
 **Learning:** `pr-labels.yml` fails PRs without labels. No manual way to label exists.
 **Action:** Always include `.github/workflows/auto-label.yml` and `.github/labeler.yml` when fixing CI failures related to missing labels.
+
+## 2025-02-21 - [CI Workflow Triggers]
+**Learning:** `pull_request_target` workflows must exist in the default branch to run. To test a new workflow in a PR, use `pull_request` trigger.
+**Action:** When adding new CI workflows, include `pull_request` trigger to ensure they execute in the introducing PR.
