@@ -1,0 +1,19 @@
+name: "Auto Label"
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+  pull_request: # Added to ensure it runs for this PR where the file is introduced
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/labeler@v5
+      with:
+        repo-token: "${{ secrets.GITHUB_TOKEN }}"
+        sync-labels: true
