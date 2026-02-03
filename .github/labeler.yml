@@ -1,0 +1,4 @@
+performance:
+  - changed-files:
+    - any-glob-to-any-file: 'src/**/*'
+    - any-glob-to-any-file: 'BlackNotepad.Test/**/*'

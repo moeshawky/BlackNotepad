@@ -46,7 +46,6 @@ namespace Savaged.BlackNotepad.Services
             string content;
             using (var sr = new StreamReader(fileModel.Location))
             {
-                // Optimization: ReadToEnd is significantly faster (~2x) than reading char-by-char
                 content = sr.ReadToEnd();
                 sr.Close();
             }
