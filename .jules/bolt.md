@@ -5,3 +5,7 @@
 ## 2025-02-21 - [Environment Limitations]
 **Learning:** This project targets .NET Framework 4.7.2 and uses WPF. Linux/Mono environment cannot build or run tests due to missing WPF assemblies (`PresentationCore`, `PresentationFramework`).
 **Action:** Use Python scripts for logic verification when C# tests are unrunnable.
+
+## 2025-02-21 - [Legacy Empty File Logic]
+**Learning:** Legacy `FileModelService.ReadFile` loop produced `"\uffff"` (EOF char) for empty files instead of an empty string. This behavior must be preserved when optimizing.
+**Action:** When replacing legacy I/O loops, explicitly check for edge cases like empty files and match legacy output quirks exactly.
