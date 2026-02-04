@@ -9,3 +9,7 @@
 ## 2025-02-21 - [Legacy Empty File Logic]
 **Learning:** Legacy `FileModelService.ReadFile` loop produced `"\uffff"` (EOF char) for empty files instead of an empty string. This behavior must be preserved when optimizing.
 **Action:** When replacing legacy I/O loops, explicitly check for edge cases like empty files and match legacy output quirks exactly.
+
+## 2025-02-21 - [CI Label Verification]
+**Learning:** The CI pipeline enforces PR labels using `pr-labels.yml` but lacked an `auto-label.yml` workflow to apply them automatically, causing CI failures for bots/agents.
+**Action:** Always check for missing CI infrastructure (like labelers) when submitting PRs to strict repos, and add them if missing.

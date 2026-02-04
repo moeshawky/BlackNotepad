@@ -1,0 +1,23 @@
+performance:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'src/**/*.cs'
+      - '**/*perf*'
+      - '**/*benchmark*'
+
+ci:
+  - changed-files:
+    - any-glob-to-any-file:
+      - '.github/workflows/**'
+
+documentation:
+  - changed-files:
+    - any-glob-to-any-file:
+      - '**/*.md'
+      - 'docs/**'
+
+dependencies:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'packages.config'
+      - '**/*.csproj'
