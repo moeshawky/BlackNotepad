@@ -11,5 +11,5 @@
 **Action:** When replacing legacy I/O loops, explicitly check for edge cases like empty files and match legacy output quirks exactly.
 
 ## 2025-02-21 - [CI Label Verification]
-**Learning:** The CI pipeline enforces PR labels using `pr-labels.yml` but lacked an `auto-label.yml` workflow to apply them automatically, causing CI failures for bots/agents.
-**Action:** Always check for missing CI infrastructure (like labelers) when submitting PRs to strict repos, and add them if missing.
+**Learning:** The CI pipeline enforces PR labels using `pr-labels.yml` but lacked an `auto-label.yml` workflow to apply them automatically, causing CI failures for bots/agents. Workflows introduced in a PR only trigger if using `pull_request`, not `pull_request_target`.
+**Action:** Always check for missing CI infrastructure (like labelers) when submitting PRs to strict repos, and add them if missing. Ensure `auto-label.yml` triggers on `pull_request` to run for the current PR.
