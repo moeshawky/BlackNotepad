@@ -1,0 +1,9 @@
+performance:
+  - changed-files:
+    - any-glob-to-any-file: 'src/**/*.cs'
+    - any-glob-to-any-file: 'BlackNotepad.Test/**/*.cs'
+    - any-glob-to-any-file: '**/*.csproj'
+
+ci:
+  - changed-files:
+    - any-glob-to-any-file: '.github/**/*'
