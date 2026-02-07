@@ -1,0 +1,21 @@
+performance:
+  - changed-files:
+    - any-glob-to-any-file: 'src/Services/FileModelService.cs'
+    - any-glob-to-any-file: 'src/**/*Service.cs'
+
+enhancement:
+  - changed-files:
+    - any-glob-to-any-file: 'src/**/*.cs'
+
+documentation:
+  - changed-files:
+    - any-glob-to-any-file: '**/*.md'
+    - any-glob-to-any-file: 'docs/**'
+
+ci:
+  - changed-files:
+    - any-glob-to-any-file: '.github/**'
+
+dependencies:
+  - changed-files:
+    - any-glob-to-any-file: 'packages.config'
