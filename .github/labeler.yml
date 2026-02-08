@@ -1,0 +1,15 @@
+# Add 'performance' label to any changes in src/
+performance:
+  - changed-files:
+    - any-glob-to-any-file: 'src/**/*.cs'
+
+# Add 'documentation' label to any changes in docs/ or markdown files
+documentation:
+  - changed-files:
+    - any-glob-to-any-file: '**/*.md'
+    - any-glob-to-any-file: 'docs/**/*'
+
+# Add 'ci' label to any changes in .github/workflows/
+ci:
+  - changed-files:
+    - any-glob-to-any-file: '.github/workflows/**/*'

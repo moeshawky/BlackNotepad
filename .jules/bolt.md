@@ -8,3 +8,9 @@
 ## 2024-05-22 - [Legacy Loop Side Effects]
 **Learning:** Legacy loops reading char-by-char can have side effects (like casting -1 to \uffff on empty files) that are hard to spot.
 **Action:** Always test edge cases (empty file, single char) when replacing loops with bulk operations.
+## 2026-02-08 - [CI/CD]
+**Learning:** GitHub CI workflows (like pr-labels) can fail if required labels are missing.
+**Action:** Implement an auto-labeler workflow using  to automatically apply labels based on file paths, ensuring CI passes without manual intervention.
+## 2026-02-08 - [CI/CD]
+**Learning:** GitHub CI workflows (like pr-labels) can fail if required labels are missing.
+**Action:** Implement an auto-labeler workflow to automatically apply labels based on file paths.
