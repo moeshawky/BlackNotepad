@@ -5,3 +5,6 @@
 ## 2025-02-21 - [Environment Limitations]
 **Learning:** This project targets .NET Framework 4.7.2 and uses WPF. Linux/Mono environment cannot build or run tests due to missing WPF assemblies (`PresentationCore`, `PresentationFramework`).
 **Action:** Use Python scripts for logic verification when C# tests are unrunnable.
+## 2024-05-22 - [Legacy Loop Side Effects]
+**Learning:** Legacy loops reading char-by-char can have side effects (like casting -1 to \uffff on empty files) that are hard to spot.
+**Action:** Always test edge cases (empty file, single char) when replacing loops with bulk operations.
