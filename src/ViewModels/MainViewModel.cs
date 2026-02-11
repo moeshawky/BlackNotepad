@@ -102,8 +102,16 @@ namespace Savaged.BlackNotepad.ViewModels
             FontColours = fontColourLookupService.GetIndex();
             ApplySelectedOnFontColour();
 
-            FontFamilyNames = fontFamilyLookupService.GetIndex();
-            ApplySelectedOnFontFamily();
+            FontFamilyNames = new List<FontFamilyModel>();
+            Task.Run(() =>
+            {
+                var fonts = fontFamilyLookupService.GetIndex();
+                Application.Current?.Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    FontFamilyNames = fonts;
+                    ApplySelectedOnFontFamily();
+                }));
+            });
 
             _fontZoomIndex = fontZoomLookupService.GetIndex();
             _defaultZoom = fontZoomLookupService.GetDefault().Zoom;
@@ -202,7 +210,12 @@ namespace Savaged.BlackNotepad.ViewModels
 
         public IList<FontColourModel> FontColours { get; }
 
-        public IList<FontFamilyModel> FontFamilyNames { get; }
+        private IList<FontFamilyModel> _fontFamilyNames;
+        public IList<FontFamilyModel> FontFamilyNames
+        {
+            get => _fontFamilyNames;
+            private set => Set(ref _fontFamilyNames, value);
+        }
 
         public FileModel SelectedItem
         {

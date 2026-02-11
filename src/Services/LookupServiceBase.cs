@@ -11,7 +11,7 @@ namespace Savaged.BlackNotepad.Services
             Index = new List<T>();
         }
 
-        public IList<T> GetIndex()
+        public virtual IList<T> GetIndex()
         {
             return Index;
         }
