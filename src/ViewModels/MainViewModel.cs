@@ -487,22 +487,22 @@ namespace Savaged.BlackNotepad.ViewModels
 
         private void FindNext()
         {
-            var textSought = _isFindMatchCase ?
-                TextSought : TextSought?.ToLower();
+            var comparison = _isFindMatchCase ?
+                StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
 
-            var allText = _isFindMatchCase ?
-                SelectedItem.Content : SelectedItem.Content?.ToLower();
+            var allText = SelectedItem.Content;
 
-            if (!allText.Contains(textSought))
+            // Bolt: Optimization - check existence without lowercasing the whole string
+            if (allText.IndexOf(TextSought, comparison) < 0)
             {
                 return;
             }
 
             var isFindDirectionUp =
                 _findDialog?.IsFindDirectionUp == true;
-            string textToSearch;
-            var startOfTextToSearch = 0;
-            var endOfTextToSearch = 0;
+
+            int indexOfTextFound = -1;
+
             if (isFindDirectionUp)
             {
                 if (IndexOfCaret == 0)
@@ -518,14 +518,22 @@ namespace Savaged.BlackNotepad.ViewModels
                         return;
                     }
                 }
-                endOfTextToSearch = IndexOfCaret;
 
-                textToSearch = allText
-                    .Substring(startOfTextToSearch, endOfTextToSearch);
+                // Bolt: Optimization - Use LastIndexOf with range to avoid Substring allocation
+                // Search backwards starting from IndexOfCaret - 1
+                indexOfTextFound = allText.LastIndexOf(
+                    TextSought,
+                    IndexOfCaret - 1,
+                    IndexOfCaret,
+                    comparison);
             }
             else
             {
-                if (IndexOfCaret >= allText.LastIndexOf(textSought))
+                // Check wrap around condition
+                int lastIndex = allText.LastIndexOf(TextSought, comparison);
+
+                // Bolt: Fix infinite loop by checking IndexOfCaret > 0
+                if (IndexOfCaret > 0 && IndexOfCaret >= lastIndex && lastIndex != -1)
                 {
                     if (_isFindWrapAround)
                     {
@@ -538,48 +546,35 @@ namespace Savaged.BlackNotepad.ViewModels
                         return;
                     }
                 }
+
+                int startOfTextToSearch;
                 if (_findNextCount > 0)
                 {
-                    startOfTextToSearch = 
-                        IndexOfCaret + textSought.Length;
+                    startOfTextToSearch =
+                        IndexOfCaret + TextSought.Length;
                 }
                 else
                 {
                     startOfTextToSearch = IndexOfCaret;
                 }
-                endOfTextToSearch = 
-                    allText.Length - startOfTextToSearch;
 
-                textToSearch = allText.Substring(
-                    startOfTextToSearch, endOfTextToSearch);
+                if (startOfTextToSearch < allText.Length)
+                {
+                    // Bolt: Optimization - Use IndexOf with start index to avoid Substring allocation
+                    indexOfTextFound = allText.IndexOf(
+                        TextSought,
+                        startOfTextToSearch,
+                        comparison);
+                }
             }
-            
-            var lengthOfTextExcluded =
-                    allText.Length - textToSearch.Length;
-            int indexOfTextFound;
 
-            var indexOfTextFoundInTextToSearch = 0;
-            if (isFindDirectionUp)
-            {
-                indexOfTextFoundInTextToSearch =
-                    textToSearch.LastIndexOf(textSought);
-
-                indexOfTextFound = indexOfTextFoundInTextToSearch;
-            }
-            else
-            {
-                indexOfTextFoundInTextToSearch =
-                    textToSearch.IndexOf(textSought);
-
-                indexOfTextFound = lengthOfTextExcluded + 
-                    indexOfTextFoundInTextToSearch;
-            }
-            if (indexOfTextFound > 0)
+            // Bolt: Fix - Check >= 0 because index 0 is a valid position
+            if (indexOfTextFound >= 0)
             {
                 _findNextCount++;
                 RaiseGoToRequested(
-                    indexOfTextFound, 
-                    textSought.Length, 
+                    indexOfTextFound,
+                    TextSought.Length,
                     allText.LineOfIndexOrDefault(
                         indexOfTextFound,
                         SelectedItem.LineEnding));
