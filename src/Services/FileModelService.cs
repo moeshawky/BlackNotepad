@@ -54,7 +54,6 @@ namespace Savaged.BlackNotepad.Services
             using (var sr = new StreamReader(fileModel.Location))
             {
                 content = sr.ReadToEnd();
-                sr.Close();
             }
 
             // Detect line endings based on content presence
