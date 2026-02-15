@@ -9,6 +9,7 @@ using Savaged.BlackNotepad.Services;
 using Savaged.BlackNotepad.ViewsInterfaces;
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Deployment.Application;
 using System.Linq;
@@ -103,6 +104,10 @@ namespace Savaged.BlackNotepad.ViewModels
             ApplySelectedOnFontColour();
 
             FontFamilyNames = fontFamilyLookupService.GetIndex();
+            if (FontFamilyNames is INotifyCollectionChanged observable)
+            {
+                observable.CollectionChanged += (s, e) => ApplySelectedOnFontFamily();
+            }
             ApplySelectedOnFontFamily();
 
             _fontZoomIndex = fontZoomLookupService.GetIndex();
