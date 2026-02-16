@@ -1,7 +1,6 @@
 ﻿using Savaged.BlackNotepad.Lookups;
 using Savaged.BlackNotepad.Models;
 using System.IO;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Savaged.BlackNotepad.Services
@@ -42,38 +41,39 @@ namespace Savaged.BlackNotepad.Services
             {
                 return;
             }
-            var contentBuilder = new StringBuilder();
-            var lineEnding = LineEndings._;
+
+            string content;
+            // Use StreamReader to preserve encoding detection
             using (var sr = new StreamReader(fileModel.Location))
             {
-                var p = 0;
-                while (p != -1)
-                {
-                    var i = sr.Read();
-                    var c = (char)i;
-                    contentBuilder.Append(c);
-                    p = sr.Peek();
-
-                    if (lineEnding == LineEndings._)
-                    {
-                        if (i == '\r' && p == '\n')
-                        {
-                            lineEnding = LineEndings.CRLF;
-                        }
-                        else if (i == '\n' && p == -1)
-                        {
-                            lineEnding = LineEndings.LF;
-                        }
-                        else if (i == '\r' && p == -1)
-                        {
-                            lineEnding = LineEndings.CR;
-                        }
-                    }
-                }
+                content = sr.ReadToEnd();
                 sr.Close();
             }
+
+            // Detect line endings using the first occurrence found
+            var lineEnding = LineEndings._;
+            int idx = content.IndexOfAny(new char[] { '\r', '\n' });
+            if (idx != -1)
+            {
+                if (content[idx] == '\r')
+                {
+                    if (idx + 1 < content.Length && content[idx + 1] == '\n')
+                    {
+                        lineEnding = LineEndings.CRLF;
+                    }
+                    else
+                    {
+                        lineEnding = LineEndings.CR;
+                    }
+                }
+                else // content[idx] == '\n'
+                {
+                    lineEnding = LineEndings.LF;
+                }
+            }
+
             fileModel.LineEnding = lineEnding;
-            fileModel.Content = contentBuilder.ToString();
+            fileModel.Content = content;
             fileModel.IsDirty = false;
         }
     }
