@@ -1,0 +1,20 @@
+# Add 'performance' label to any changes in C# files
+performance:
+  - changed-files:
+    - any-glob-to-any-file: 'src/**/*.cs'
+
+# Add 'ci' label to changes in github workflows
+ci:
+  - changed-files:
+    - any-glob-to-any-file: '.github/workflows/**'
+
+# Add 'refactor' label as a catch-all for C# changes (optional but good practice)
+refactor:
+  - changed-files:
+    - any-glob-to-any-file: 'src/**/*.cs'
+
+# Add 'documentation' label
+documentation:
+  - changed-files:
+    - any-glob-to-any-file: 'docs/**'
+    - any-glob-to-any-file: '*.md'
