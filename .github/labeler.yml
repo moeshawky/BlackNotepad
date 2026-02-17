@@ -1,0 +1,15 @@
+performance:
+  - changed-files:
+    - any-glob-to-any-file: ['src/**/*.cs', 'src/**/*.xaml']
+
+bugfix:
+  - changed-files:
+    - any-glob-to-any-file: ['src/Services/*.cs']
+
+documentation:
+  - changed-files:
+    - any-glob-to-any-file: ['**/*.md']
+
+ci:
+  - changed-files:
+    - any-glob-to-any-file: ['.github/**/*']
