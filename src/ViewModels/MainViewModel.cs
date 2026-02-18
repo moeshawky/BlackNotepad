@@ -487,22 +487,28 @@ namespace Savaged.BlackNotepad.ViewModels
 
         private void FindNext()
         {
-            var textSought = _isFindMatchCase ?
-                TextSought : TextSought?.ToLower();
+            // Bolt: Optimized FindNext to avoid large string allocations and use IndexOf with comparison.
+            // Also fixed a bug where matches at index 0 were ignored.
+            var textSought = TextSought;
+            var allText = SelectedItem.Content;
 
-            var allText = _isFindMatchCase ?
-                SelectedItem.Content : SelectedItem.Content?.ToLower();
-
-            if (!allText.Contains(textSought))
+            if (string.IsNullOrEmpty(allText) || string.IsNullOrEmpty(textSought))
             {
                 return;
             }
 
-            var isFindDirectionUp =
-                _findDialog?.IsFindDirectionUp == true;
-            string textToSearch;
-            var startOfTextToSearch = 0;
-            var endOfTextToSearch = 0;
+            var comparison = _isFindMatchCase
+                ? StringComparison.CurrentCulture
+                : StringComparison.CurrentCultureIgnoreCase;
+
+            if (allText.IndexOf(textSought, comparison) < 0)
+            {
+                return;
+            }
+
+            var isFindDirectionUp = _findDialog?.IsFindDirectionUp == true;
+            int indexOfTextFound = -1;
+
             if (isFindDirectionUp)
             {
                 if (IndexOfCaret == 0)
@@ -518,14 +524,24 @@ namespace Savaged.BlackNotepad.ViewModels
                         return;
                     }
                 }
-                endOfTextToSearch = IndexOfCaret;
 
-                textToSearch = allText
-                    .Substring(startOfTextToSearch, endOfTextToSearch);
+                if (IndexOfCaret > 0)
+                {
+                    // Search backwards from IndexOfCaret
+                    int startIndex = IndexOfCaret - 1;
+                    int count = IndexOfCaret;
+
+                    if (startIndex >= 0)
+                    {
+                        indexOfTextFound = allText.LastIndexOf(textSought, startIndex, count, comparison);
+                    }
+                }
             }
             else
             {
-                if (IndexOfCaret >= allText.LastIndexOf(textSought))
+                // Check if we need to wrap
+                int lastOccurrence = allText.LastIndexOf(textSought, comparison);
+                if (IndexOfCaret >= lastOccurrence && lastOccurrence != -1)
                 {
                     if (_isFindWrapAround)
                     {
@@ -538,48 +554,29 @@ namespace Savaged.BlackNotepad.ViewModels
                         return;
                     }
                 }
+
+                int startOfTextToSearch;
                 if (_findNextCount > 0)
                 {
-                    startOfTextToSearch = 
-                        IndexOfCaret + textSought.Length;
+                    startOfTextToSearch = IndexOfCaret + textSought.Length;
                 }
                 else
                 {
                     startOfTextToSearch = IndexOfCaret;
                 }
-                endOfTextToSearch = 
-                    allText.Length - startOfTextToSearch;
 
-                textToSearch = allText.Substring(
-                    startOfTextToSearch, endOfTextToSearch);
+                if (startOfTextToSearch < allText.Length)
+                {
+                    indexOfTextFound = allText.IndexOf(textSought, startOfTextToSearch, comparison);
+                }
             }
-            
-            var lengthOfTextExcluded =
-                    allText.Length - textToSearch.Length;
-            int indexOfTextFound;
 
-            var indexOfTextFoundInTextToSearch = 0;
-            if (isFindDirectionUp)
-            {
-                indexOfTextFoundInTextToSearch =
-                    textToSearch.LastIndexOf(textSought);
-
-                indexOfTextFound = indexOfTextFoundInTextToSearch;
-            }
-            else
-            {
-                indexOfTextFoundInTextToSearch =
-                    textToSearch.IndexOf(textSought);
-
-                indexOfTextFound = lengthOfTextExcluded + 
-                    indexOfTextFoundInTextToSearch;
-            }
-            if (indexOfTextFound > 0)
+            if (indexOfTextFound >= 0)
             {
                 _findNextCount++;
                 RaiseGoToRequested(
-                    indexOfTextFound, 
-                    textSought.Length, 
+                    indexOfTextFound,
+                    textSought.Length,
                     allText.LineOfIndexOrDefault(
                         indexOfTextFound,
                         SelectedItem.LineEnding));
