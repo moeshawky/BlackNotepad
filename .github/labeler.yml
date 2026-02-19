@@ -1,0 +1,14 @@
+performance:
+  - changed-files:
+    - any-glob-to-any-file: 'src/**/*.cs'
+    - any-glob-to-any-file: 'BlackNotepad.Test/**/*.cs'
+
+ci:
+  - changed-files:
+    - any-glob-to-any-file: '.github/workflows/**'
+    - any-glob-to-any-file: '.github/labeler.yml'
+
+refactor:
+  - changed-files:
+    - any-glob-to-any-file: 'src/**/*.cs'
+    - any-glob-to-any-file: 'BlackNotepad.Test/**/*.cs'

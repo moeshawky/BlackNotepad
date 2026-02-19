@@ -1,5 +1,6 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Savaged.BlackNotepad.Lookups;
+using Savaged.BlackNotepad.Models;
 using Savaged.BlackNotepad.Services;
 using System.IO;
 using System.Threading.Tasks;
