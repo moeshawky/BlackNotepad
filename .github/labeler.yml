@@ -1,0 +1,15 @@
+performance:
+  - changed-files:
+    - any-glob-to-any-file: 'src/**/*'
+
+refactor:
+  - changed-files:
+    - any-glob-to-any-file: 'src/**/*'
+
+bugfix:
+  - changed-files:
+    - any-glob-to-any-file: 'src/**/*'
+
+ci:
+  - changed-files:
+    - any-glob-to-any-file: '.github/workflows/**/*'
