@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 namespace Savaged.BlackNotepad.Services
 {
@@ -8,7 +9,7 @@ namespace Savaged.BlackNotepad.Services
 
         public LookupServiceBase()
         {
-            Index = new List<T>();
+            Index = new ObservableCollection<T>();
         }
 
         public IList<T> GetIndex()
