@@ -1,7 +1,6 @@
-name: "Auto Label"
-
+name: "Pull Request Labeler"
 on:
-  pull_request:
+- pull_request
 
 jobs:
   triage:
@@ -11,3 +10,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/labeler@v5
+      with:
+        repo-token: "${{ secrets.GITHUB_TOKEN }}"
+        configuration-path: .github/labeler.yml
