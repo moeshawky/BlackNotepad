@@ -5,3 +5,7 @@
 ## 2025-02-21 - [Environment Limitations]
 **Learning:** This project targets .NET Framework 4.7.2 and uses WPF. Linux/Mono environment cannot build or run tests due to missing WPF assemblies (`PresentationCore`, `PresentationFramework`).
 **Action:** Use Python scripts for logic verification when C# tests are unrunnable.
+
+## 2025-02-21 - [Optimizing Line Counting]
+**Learning:** `LineOfIndexOrDefault` iterated character by character (O(N)). Replacing with `IndexOf` (O(Lines)) improves performance significantly for large files. However, matching legacy behavior for out-of-bounds indices (returning 1) required explicit checks.
+**Action:** When optimizing loop-based algorithms, verify boundary conditions (especially index >= length) against the original implementation to prevent regressions.
