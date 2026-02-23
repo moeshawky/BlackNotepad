@@ -1,4 +1,4 @@
-﻿using Savaged.BlackNotepad.Lookups;
+using Savaged.BlackNotepad.Lookups;
 
 namespace Savaged.BlackNotepad.Extensions
 {
@@ -7,27 +7,41 @@ namespace Savaged.BlackNotepad.Extensions
         public static int LineOfIndexOrDefault(
             this string self, int index, LineEndings lineEnding)
         {
+            // Bolt: Optimized to use IndexOf loop for performance (O(Lines) vs O(N)).
+            // Returns 1 if string is empty or index out of bounds to match original behavior.
+            if (string.IsNullOrEmpty(self)) return 1;
+            if (index >= self.Length) return 1;
+
             var lineEndingChar = '\r';
             if (lineEnding == LineEndings.LF)
             {
                 lineEndingChar = '\n';
             }
-            var linesCounted = 0;
-            var value = 1;
-            for (int i = 0; i < self.Length; i++)
+
+            int linesCounted = 0;
+            int currentPos = 0;
+
+            while (true)
             {
-                if (self[i] == lineEndingChar
-                    || i == self.Length - 1)
+                int nextNewline = self.IndexOf(lineEndingChar, currentPos);
+
+                // If no more newlines, or next newline is beyond index
+                if (nextNewline == -1 || nextNewline > index)
                 {
-                    linesCounted++;
+                    // Check if index reaches the end of string.
+                    // If we are at the last character and it's NOT a newline,
+                    // we count it as a line ending (matching original behavior).
+                    if (index == self.Length - 1 && self[index] != lineEndingChar)
+                    {
+                        linesCounted++;
+                    }
+                    return linesCounted;
                 }
-                if (index == i)
-                {
-                    value = linesCounted;
-                    break;
-                }
+
+                // Found a newline at `nextNewline` <= index.
+                linesCounted++;
+                currentPos = nextNewline + 1;
             }
-            return value;
         }
     }
 }
