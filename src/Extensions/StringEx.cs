@@ -12,22 +12,33 @@ namespace Savaged.BlackNotepad.Extensions
             {
                 lineEndingChar = '\n';
             }
-            var linesCounted = 0;
-            var value = 1;
-            for (int i = 0; i < self.Length; i++)
+
+            if (string.IsNullOrEmpty(self) || index < 0 || index >= self.Length)
             {
-                if (self[i] == lineEndingChar
-                    || i == self.Length - 1)
+                return 1;
+            }
+
+            // Optimization: Use IndexOf to count newlines faster than char-by-char loop
+            var count = 0;
+            var pos = 0;
+
+            while (pos < index)
+            {
+                int next = self.IndexOf(lineEndingChar, pos, index - pos);
+                if (next < 0)
                 {
-                    linesCounted++;
-                }
-                if (index == i)
-                {
-                    value = linesCounted;
                     break;
                 }
+                count++;
+                pos = next + 1;
             }
-            return value;
+
+            if (index == self.Length - 1 || self[index] == lineEndingChar)
+            {
+                count++;
+            }
+
+            return count;
         }
     }
 }
