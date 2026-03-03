@@ -642,33 +642,31 @@ namespace Savaged.BlackNotepad.ViewModels
             }
             else
             {
-                var allText = _isFindMatchCase ?
-                    SelectedItem.Content : 
-                    SelectedItem.Content?.ToLower();
+                var allText = SelectedItem.Content ?? string.Empty;
+                var replacement = _replaceDialog?.ReplacementText ?? string.Empty;
+                var sought = TextSought;
 
-                var replacement = _replaceDialog?.ReplacementText;
-
-                var sought = _isFindMatchCase ?
-                    TextSought : TextSought?.ToLower();
-
-                var textPrior = string.Empty;
-                if (allText.Contains(sought))
+                // Bolt: Optimize single replacement by avoiding ToLower(), Substring(), and
+                // string interpolation. Remove(index, length).Insert() is much faster
+                // and avoids case-insensitive bugs where the entire document becomes lowercased.
+                if (IndexOfCaret >= 0 && IndexOfCaret + sought.Length <= allText.Length)
                 {
-                    textPrior = SelectedItem.Content?
-                        .Substring(0, IndexOfCaret);
+                    var comparison = _isFindMatchCase
+                        ? StringComparison.CurrentCulture
+                        : StringComparison.CurrentCultureIgnoreCase;
 
-                    var endOfTextAfter =
-                        IndexOfCaret + sought.Length;
-
-                    var textAfter = SelectedItem.Content?
-                        .Substring(endOfTextAfter);
-
-                    allText = $"{textPrior}{replacement}{textAfter}";
+                    // Ensure the text at the caret actually matches the text sought before replacing
+                    if (string.Compare(allText, IndexOfCaret, sought, 0, sought.Length, comparison) == 0)
+                    {
+                        allText = allText
+                            .Remove(IndexOfCaret, sought.Length)
+                            .Insert(IndexOfCaret, replacement);
+                    }
                 }
+
                 SelectedItem.Content = allText;
 
-                var indexOfTextFound = textPrior.Length +
-                    replacement.Length;
+                var indexOfTextFound = IndexOfCaret + replacement.Length;
 
                 RaiseGoToRequested(
                     indexOfTextFound, 
