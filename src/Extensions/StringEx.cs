@@ -7,27 +7,43 @@ namespace Savaged.BlackNotepad.Extensions
         public static int LineOfIndexOrDefault(
             this string self, int index, LineEndings lineEnding)
         {
+            // Bolt: Optimized line counting by replacing character-by-character scan
+            // with string.IndexOf jumps, significantly reducing overhead for large strings.
+            if (string.IsNullOrEmpty(self) || index < 0 || index >= self.Length)
+            {
+                return 1;
+            }
+
             var lineEndingChar = '\r';
             if (lineEnding == LineEndings.LF)
             {
                 lineEndingChar = '\n';
             }
-            var linesCounted = 0;
-            var value = 1;
-            for (int i = 0; i < self.Length; i++)
+
+            int linesCounted = 0;
+            int searchStart = 0;
+
+            while (true)
             {
-                if (self[i] == lineEndingChar
-                    || i == self.Length - 1)
+                int nextNewline = self.IndexOf(lineEndingChar, searchStart);
+                if (nextNewline == -1 || nextNewline >= index)
                 {
-                    linesCounted++;
-                }
-                if (index == i)
-                {
-                    value = linesCounted;
                     break;
                 }
+                linesCounted++;
+                searchStart = nextNewline + 1;
             }
-            return value;
+
+            if (index == self.Length - 1 && self[index] != lineEndingChar)
+            {
+                linesCounted++;
+            }
+            else if (self[index] == lineEndingChar)
+            {
+                linesCounted++;
+            }
+
+            return linesCounted;
         }
     }
 }
