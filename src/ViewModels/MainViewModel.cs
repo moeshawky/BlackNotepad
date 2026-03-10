@@ -742,25 +742,41 @@ namespace Savaged.BlackNotepad.ViewModels
                 lineCharToInclude = 1;
             }
             var text = SelectedItem.Content;
-            var linesCounted = 0;
-            var charsInLine = 0;
-            for (int i = 0; i < text.Length; i++)
-            {
-                charsInLine++;
-                if (text[i] == lineEndingChar
-                    || i == text.Length - 1)
-                {
-                    linesCounted++;
-                    if (lineNumberSought == linesCounted)
-                    {
-                        var lineStartPosition =
-                            i + lineCharToInclude - charsInLine;
 
-                        RaiseGoToRequested(
-                            lineStartPosition, 0, lineNumberSought);
-                        break;
-                    }
-                    charsInLine = 0;
+            if (string.IsNullOrEmpty(text))
+            {
+                return;
+            }
+
+            // Bolt: Optimized GoTo from character-by-character scan to IndexOf scan.
+            // Maintains exact bug-for-bug legacy index calculation behavior.
+            var linesCounted = 0;
+            var currentIndex = 0;
+
+            while (true)
+            {
+                linesCounted++;
+                if (lineNumberSought == linesCounted)
+                {
+                    var lineStartPosition = linesCounted == 1
+                        ? lineCharToInclude - 1
+                        : currentIndex + lineCharToInclude - 1;
+
+                    RaiseGoToRequested(
+                        lineStartPosition, 0, lineNumberSought);
+                    break;
+                }
+
+                var nextIndex = text.IndexOf(lineEndingChar, currentIndex);
+                if (nextIndex == -1)
+                {
+                    break;
+                }
+
+                currentIndex = nextIndex + 1;
+                if (currentIndex == text.Length)
+                {
+                    break;
                 }
             }
         }
