@@ -7,27 +7,44 @@ namespace Savaged.BlackNotepad.Extensions
         public static int LineOfIndexOrDefault(
             this string self, int index, LineEndings lineEnding)
         {
+            if (string.IsNullOrEmpty(self) || index < 0 || index >= self.Length)
+            {
+                return 1;
+            }
+
             var lineEndingChar = '\r';
             if (lineEnding == LineEndings.LF)
             {
                 lineEndingChar = '\n';
             }
-            var linesCounted = 0;
-            var value = 1;
-            for (int i = 0; i < self.Length; i++)
+
+            // Optimized to use string.IndexOf instead of character-by-character scan.
+            // This yields significant performance improvements for large strings.
+            int linesCounted = 0;
+            int currentPos = 0;
+
+            while (currentPos <= index)
             {
-                if (self[i] == lineEndingChar
-                    || i == self.Length - 1)
+                int nextMatch = self.IndexOf(lineEndingChar, currentPos);
+                if (nextMatch != -1 && nextMatch <= index)
                 {
                     linesCounted++;
+                    currentPos = nextMatch + 1;
                 }
-                if (index == i)
+                else
                 {
-                    value = linesCounted;
                     break;
                 }
             }
-            return value;
+
+            // Legacy code quirk: explicitly increments linesCounted if the index
+            // matches the last character of the string, and it's not a newline.
+            if (index == self.Length - 1 && self[index] != lineEndingChar)
+            {
+                linesCounted++;
+            }
+
+            return linesCounted;
         }
     }
 }
