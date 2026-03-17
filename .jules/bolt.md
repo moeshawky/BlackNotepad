@@ -5,3 +5,7 @@
 ## 2025-02-21 - [Environment Limitations]
 **Learning:** This project targets .NET Framework 4.7.2 and uses WPF. Linux/Mono environment cannot build or run tests due to missing WPF assemblies (`PresentationCore`, `PresentationFramework`).
 **Action:** Use Python scripts for logic verification when C# tests are unrunnable.
+
+## 2025-02-21 - [Line Counting Performance]
+**Learning:** Line counting using O(n) character-by-character string iteration (`text[i] == \n`) in WPF ViewModels creates major UI unresponsiveness for large documents. `String.IndexOf` loops process string blocks much more efficiently at the C++ level.
+**Action:** Always replace O(n) char-by-char string searches with `String.IndexOf` loops in document manipulation services, ensuring boundary conditions and empty strings are handled perfectly.
