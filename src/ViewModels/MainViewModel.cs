@@ -731,37 +731,48 @@ namespace Savaged.BlackNotepad.ViewModels
 
         private void GoTo(int lineNumberSought)
         {
-            var lineEndingChar = '\r';
-            if (SelectedItem.LineEnding == LineEndings.LF)
-            {
-                lineEndingChar = '\n';
-            }
-            var lineCharToInclude = 0;
-            if (SelectedItem.LineEnding == LineEndings.CRLF)
-            {
-                lineCharToInclude = 1;
-            }
             var text = SelectedItem.Content;
-            var linesCounted = 0;
-            var charsInLine = 0;
-            for (int i = 0; i < text.Length; i++)
+            if (string.IsNullOrEmpty(text))
             {
-                charsInLine++;
-                if (text[i] == lineEndingChar
-                    || i == text.Length - 1)
-                {
-                    linesCounted++;
-                    if (lineNumberSought == linesCounted)
-                    {
-                        var lineStartPosition =
-                            i + lineCharToInclude - charsInLine;
+                return;
+            }
 
-                        RaiseGoToRequested(
-                            lineStartPosition, 0, lineNumberSought);
-                        break;
+            var lineEndingChar = SelectedItem.LineEnding == LineEndings.LF ? '\n' : '\r';
+            var lineCharToInclude = SelectedItem.LineEnding == LineEndings.CRLF ? 1 : 0;
+
+            // Bolt: Optimized GoTo functionality using IndexOf instead of character-by-character scan.
+            // Maintains legacy line counting logic while providing a huge performance boost on large documents.
+            int linesCounted = 0;
+            int currentIndex = 0;
+
+            while (true)
+            {
+                int nextIndex = text.IndexOf(lineEndingChar, currentIndex);
+
+                if (nextIndex == -1)
+                {
+                    // No more line endings. We hit the end of the string.
+                    if (currentIndex < text.Length)
+                    {
+                        linesCounted++;
+                        if (lineNumberSought == linesCounted)
+                        {
+                            int lineStartPosition = currentIndex - 1 + lineCharToInclude;
+                            RaiseGoToRequested(lineStartPosition, 0, lineNumberSought);
+                        }
                     }
-                    charsInLine = 0;
+                    break;
                 }
+
+                linesCounted++;
+                if (lineNumberSought == linesCounted)
+                {
+                    int lineStartPosition = currentIndex - 1 + lineCharToInclude;
+                    RaiseGoToRequested(lineStartPosition, 0, lineNumberSought);
+                    break;
+                }
+
+                currentIndex = nextIndex + 1;
             }
         }
 
