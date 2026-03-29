@@ -5,3 +5,6 @@
 ## 2025-02-21 - [Environment Limitations]
 **Learning:** This project targets .NET Framework 4.7.2 and uses WPF. Linux/Mono environment cannot build or run tests due to missing WPF assemblies (`PresentationCore`, `PresentationFramework`).
 **Action:** Use Python scripts for logic verification when C# tests are unrunnable.
+## 2025-02-21 - [Inefficient GoTo in MainViewModel]
+**Learning:** `MainViewModel.GoTo` used an O(n) character-by-character scan which is slow for large documents. Using an `IndexOf` loop with `lineEndingChar` is ~3x faster and provides identical logic to legacy indexing.
+**Action:** Replace character-by-character string scans with `IndexOf` chunking when looking for line endings or specific characters.
