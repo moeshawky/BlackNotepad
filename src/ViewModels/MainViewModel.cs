@@ -642,33 +642,32 @@ namespace Savaged.BlackNotepad.ViewModels
             }
             else
             {
-                var allText = _isFindMatchCase ?
-                    SelectedItem.Content : 
-                    SelectedItem.Content?.ToLower();
-
-                var replacement = _replaceDialog?.ReplacementText;
-
-                var sought = _isFindMatchCase ?
-                    TextSought : TextSought?.ToLower();
-
-                var textPrior = string.Empty;
-                if (allText.Contains(sought))
+                var allText = SelectedItem.Content;
+                if (string.IsNullOrEmpty(allText))
                 {
-                    textPrior = SelectedItem.Content?
-                        .Substring(0, IndexOfCaret);
-
-                    var endOfTextAfter =
-                        IndexOfCaret + sought.Length;
-
-                    var textAfter = SelectedItem.Content?
-                        .Substring(endOfTextAfter);
-
-                    allText = $"{textPrior}{replacement}{textAfter}";
+                    return;
                 }
+
+                var replacement = _replaceDialog?.ReplacementText ?? string.Empty;
+                var comparison = _isFindMatchCase
+                    ? StringComparison.CurrentCulture
+                    : StringComparison.CurrentCultureIgnoreCase;
+
+                // Bolt: Optimized validation to avoid O(N) Contains scan and large ToLower allocations.
+                // Uses string.Compare at the specific IndexOfCaret to verify a match before replacing.
+                if (IndexOfCaret >= 0 && IndexOfCaret + TextSought.Length <= allText.Length)
+                {
+                    if (string.Compare(allText, IndexOfCaret, TextSought, 0, TextSought.Length, comparison) == 0)
+                    {
+                        allText = allText
+                            .Remove(IndexOfCaret, TextSought.Length)
+                            .Insert(IndexOfCaret, replacement);
+                    }
+                }
+
                 SelectedItem.Content = allText;
 
-                var indexOfTextFound = textPrior.Length +
-                    replacement.Length;
+                var indexOfTextFound = IndexOfCaret + replacement.Length;
 
                 RaiseGoToRequested(
                     indexOfTextFound, 
