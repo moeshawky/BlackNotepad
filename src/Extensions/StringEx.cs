@@ -7,27 +7,36 @@ namespace Savaged.BlackNotepad.Extensions
         public static int LineOfIndexOrDefault(
             this string self, int index, LineEndings lineEnding)
         {
-            var lineEndingChar = '\r';
-            if (lineEnding == LineEndings.LF)
+            if (string.IsNullOrEmpty(self) || index < 0 || index >= self.Length)
             {
-                lineEndingChar = '\n';
+                return 1;
             }
-            var linesCounted = 0;
-            var value = 1;
-            for (int i = 0; i < self.Length; i++)
+
+            var lineEndingChar = lineEnding == LineEndings.LF ? '\n' : '\r';
+            int linesCounted = 0;
+            int currentIndex = -1;
+
+            while (true)
             {
-                if (self[i] == lineEndingChar
-                    || i == self.Length - 1)
+                int nextIndex = self.IndexOf(lineEndingChar, currentIndex + 1);
+
+                if (nextIndex == -1 || nextIndex >= index)
                 {
-                    linesCounted++;
+                    if (index == self.Length - 1 && self[index] != lineEndingChar)
+                    {
+                        linesCounted++;
+                    }
+                    else if (self[index] == lineEndingChar)
+                    {
+                        linesCounted++;
+                    }
+
+                    return linesCounted;
                 }
-                if (index == i)
-                {
-                    value = linesCounted;
-                    break;
-                }
+
+                linesCounted++;
+                currentIndex = nextIndex;
             }
-            return value;
         }
     }
 }
