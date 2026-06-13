@@ -215,7 +215,7 @@
             </StatusBarItem>
         </StatusBar>
         
-        <controls:LineNumbersControl Name="LineNumbersGutter"
+        <controls:LineNumbersControl x:Name="LineNumbersGutter"
                                      DockPanel.Dock="Left"
                                      Width="50"
                                      LineCount="{Binding LineNumberCount}"
