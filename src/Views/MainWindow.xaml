@@ -186,7 +186,7 @@
                 <TextBlock Text="{Binding WordCount, StringFormat='Words: {0}'}"/>
             </StatusBarItem>
             <StatusBarItem Grid.Column="2">
-                <TextBlock Text="{Binding LineEndingDisplay}"/>
+                <TextBlock Text="{Binding SelectedItem.LineEnding, Converter={StaticResource LineEndingConverter}}"/>
             </StatusBarItem>
             <StatusBarItem Grid.Column="3">
                 <TextBlock Text="{Binding CaretPosition, Converter={StaticResource CoordsConverter}}"/>

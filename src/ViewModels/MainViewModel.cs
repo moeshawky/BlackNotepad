@@ -211,7 +211,6 @@ namespace Savaged.BlackNotepad.ViewModels
 
                 RaisePropertyChanged(nameof(Title));
                 RaisePropertyChanged(nameof(WordCount));
-                RaisePropertyChanged(nameof(LineEndingDisplay));
                 AddToRecentFiles(location);
             }
             catch (System.IO.FileNotFoundException)
@@ -350,33 +349,6 @@ namespace Savaged.BlackNotepad.ViewModels
                 }
                 return content.Split(
                     (char[])null, StringSplitOptions.RemoveEmptyEntries).Length;
-            }
-        }
-
-        /// <summary>
-        /// Returns a human-readable display string for the current line ending mode
-        /// of the active document (e.g., "Windows (CRLF)", "Mac (LF)", "Unix (CR)").
-        /// </summary>
-        /// <value>Display name of the current line ending. Empty string if no document is loaded.</value>
-        public string LineEndingDisplay
-        {
-            get
-            {
-                if (SelectedItem is null)
-                {
-                    return string.Empty;
-                }
-                switch (SelectedItem.LineEnding)
-                {
-                    case LineEndings.CRLF:
-                        return "Windows (CRLF)";
-                    case LineEndings.LF:
-                        return "Mac (LF)";
-                    case LineEndings.CR:
-                        return "Unix (CR)";
-                    default:
-                        return string.Empty;
-                }
             }
         }
 
@@ -609,10 +581,6 @@ namespace Savaged.BlackNotepad.ViewModels
         {
             await OnClosing();
             Application.Current.Shutdown();
-        }
-
-        private void OnDialogDone(object sender, IDialogDoneEventArgs e)
-        {
         }
 
         private void OnFind()
@@ -1116,7 +1084,6 @@ namespace Savaged.BlackNotepad.ViewModels
                     RaisePropertyChanged(nameof(WordCount));
                     break;
                 case nameof(SelectedItem.LineEnding):
-                    RaisePropertyChanged(nameof(LineEndingDisplay));
                     break;
             }
         }

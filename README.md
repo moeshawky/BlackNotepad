@@ -1,6 +1,6 @@
 # BlackNotepad Community Fork 📝
 
-> A modern, dark-themed text editor for Windows with theme support, file association handling, and UTF-8 encoding.
+> A modern, dark-themed text editor for Windows with file association handling and UTF-8 encoding.
 
 ---
 
@@ -33,7 +33,7 @@ A clean, fast text editor that remembers your preferences:
 ### Key Features
 
 - ✅ **File Association Fix** - Double-clicked .txt files open correctly
-- ✅ **Theme Support** - Dark and Light themes
+- ✅ **Dark Theme** - Clean, dark-themed interface
 - ✅ **Window Persistence** - Remembers font settings, zoom, and word wrap
 - ✅ **UTF-8 Encoding** - Standard text file support
 - ✅ **Extended Formats** - Standard text files — .txt and all file types
@@ -133,7 +133,6 @@ iexpress /N /Q /S BlackNotepad.sed
 ### View Menu
 
 - Status bar toggle
-- Theme selection (Dark/Light)
 
 ---
 
