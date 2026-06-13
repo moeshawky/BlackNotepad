@@ -110,6 +110,13 @@ namespace Savaged.BlackNotepad.Services
             return null;
         }
 
+        /// <summary>
+        /// Resolves a Dialog instance by extracting the dialog name from the ViewModel type,
+        /// then locates the matching Dialog type via reflection. Throws if no matching type exists.
+        /// </summary>
+        /// <param name="vm">The dialog ViewModel whose type name maps to a Dialog type.</param>
+        /// <returns>The resolved Dialog instance with DataContext set.</returns>
+        /// <exception cref="InvalidOperationException">Thrown when no Dialog type matches the ViewModel name.</exception>
         private Dialog GetDialog(IDialogViewModel vm)
         {
             var vmName = vm.GetType().Name;
@@ -117,6 +124,11 @@ namespace Savaged.BlackNotepad.Services
                 .Substring(0, vmName.IndexOf("ViewModel"));
 
             var value = GetDialog(dialogName);
+            if (value is null)
+            {
+                throw new InvalidOperationException(
+                    $"No Dialog type found matching '{dialogName}'.");
+            }
             value.DataContext = vm;
 
             if (vm is IExclusiveDialogViewModel)
@@ -134,6 +146,12 @@ namespace Savaged.BlackNotepad.Services
             return value;
         }
 
+        /// <summary>
+        /// Resolves a Dialog type by name using reflection over the entry assembly.
+        /// Searches for types whose base type is Dialog or whose grandparent type is Dialog.
+        /// </summary>
+        /// <param name="dialogName">The short name of the Dialog type to locate (without "ViewModel" suffix).</param>
+        /// <returns>The instantiated Dialog, or null if no matching type was found.</returns>
         private Dialog GetDialog(string dialogName)
         {
             Dialog value = null;
