@@ -164,6 +164,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Views\Controls\LineNumbersControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Views\ReplaceDialog.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -194,6 +198,9 @@
     </Compile>
     <Compile Include="Views\Controls\TextSoughtInputControl.xaml.cs">
       <DependentUpon>TextSoughtInputControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Controls\LineNumbersControl.xaml.cs">
+      <DependentUpon>LineNumbersControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\Dialog.cs" />
     <Compile Include="Views\DialogDoneEventArgs.cs" />

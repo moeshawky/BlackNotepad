@@ -18,6 +18,7 @@ using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Threading;
 
 namespace Savaged.BlackNotepad.ViewModels
 {
@@ -33,6 +34,7 @@ namespace Savaged.BlackNotepad.ViewModels
         private readonly int _defaultZoom;
         private readonly IFindDialogViewModel _findDialog;
         private readonly IReplaceDialogViewModel _replaceDialog;
+        private readonly DispatcherTimer _autoSaveTimer;
         private FileModel _selectedItem;
         private string _selectedText;
         private string _textSought;
@@ -126,6 +128,7 @@ namespace Savaged.BlackNotepad.ViewModels
             SaveCmd = new RelayCommand(OnSave, () => CanExecute);
             SaveAsCmd = new RelayCommand(OnSaveAs, () => CanExecute);
             ExitCmd = new RelayCommand(OnExit, () => CanExecute);
+            OpenRecentCmd = new RelayCommand<string>(OnOpenRecent, (s) => CanExecute);
             FindCmd = new RelayCommand(OnFind, () => CanExecuteFind);
             FindNextCmd = new RelayCommand(OnFindNext, () => CanExecuteFindNext);
             EscCmd = new RelayCommand(OnEsc, () => CanExecuteEsc);
@@ -146,6 +149,17 @@ namespace Savaged.BlackNotepad.ViewModels
                 OnFontFamily, (b) => CanExecute);
             PrettifyJsonCmd = new RelayCommand(
                 OnPrettifyJson, () => CanExecutePrettifyJson);
+            PrintPreviewCmd = new RelayCommand(OnPrintPreview, () => CanExecute);
+
+            _autoSaveTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromSeconds(60)
+            };
+            _autoSaveTimer.Tick += OnAutoSaveTick;
+            if (ViewState.AutoSaveEnabled)
+            {
+                _autoSaveTimer.Start();
+            }
 
             _findDialog = _dialogService
                 .GetDialogViewModel<IFindDialogViewModel>();
@@ -173,6 +187,7 @@ namespace Savaged.BlackNotepad.ViewModels
 
         public async Task<bool> OnClosing()
         {
+            _autoSaveTimer.Stop();
             _viewStateService.Save(ViewState);
 
             var saveChanges = SaveChangesConfirmation();
@@ -195,6 +210,9 @@ namespace Savaged.BlackNotepad.ViewModels
                 .LoadAsync(location);
 
             RaisePropertyChanged(nameof(Title));
+            RaisePropertyChanged(nameof(WordCount));
+            RaisePropertyChanged(nameof(LineEndingDisplay));
+            AddToRecentFiles(location);
 
             EndLongOpertation();
         }
@@ -283,6 +301,7 @@ namespace Savaged.BlackNotepad.ViewModels
         public RelayCommand SaveCmd { get; }
         public RelayCommand SaveAsCmd { get; }
         public RelayCommand ExitCmd { get; }
+        public RelayCommand<string> OpenRecentCmd { get; }
         public RelayCommand FindCmd { get; }
         public RelayCommand FindNextCmd { get; }
         public RelayCommand EscCmd { get; }
@@ -299,6 +318,78 @@ namespace Savaged.BlackNotepad.ViewModels
         public RelayCommand<FontColourModel> FontColourCmd { get; }
         public RelayCommand<FontFamilyModel> FontFamilyCmd { get; }
         public RelayCommand PrettifyJsonCmd { get; }
+        public RelayCommand PrintPreviewCmd { get; }
+
+        /// <summary>
+        /// Returns the number of whitespace-separated words in the current document content.
+        /// </summary>
+        /// <value>Word count as an integer. Returns 0 when content is null or empty.</value>
+        public int WordCount
+        {
+            get
+            {
+                var content = SelectedItem?.Content;
+                if (string.IsNullOrWhiteSpace(content))
+                {
+                    return 0;
+                }
+                return content.Split(
+                    (char[])null, StringSplitOptions.RemoveEmptyEntries).Length;
+            }
+        }
+
+        /// <summary>
+        /// Returns a human-readable display string for the current line ending mode
+        /// of the active document (e.g., "Windows (CRLF)", "Mac (LF)", "Unix (CR)").
+        /// </summary>
+        /// <value>Display name of the current line ending. Empty string if no document is loaded.</value>
+        public string LineEndingDisplay
+        {
+            get
+            {
+                if (SelectedItem is null)
+                {
+                    return string.Empty;
+                }
+                switch (SelectedItem.LineEnding)
+                {
+                    case LineEndings.CRLF:
+                        return "Windows (CRLF)";
+                    case LineEndings.LF:
+                        return "Mac (LF)";
+                    case LineEndings.CR:
+                        return "Unix (CR)";
+                    default:
+                        return string.Empty;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Returns the total number of lines in the current document content,
+        /// used to populate the line number gutter.
+        /// </summary>
+        /// <value>Line count as an integer. Returns 1 when content is null or empty.</value>
+        public int LineNumberCount
+        {
+            get => _lineNumberCount;
+            set => Set(ref _lineNumberCount, value);
+        }
+
+        private int _lineNumberCount = 1;
+
+        private double _lineScrollOffset;
+
+        /// <summary>
+        /// Gets or sets the vertical scroll offset in pixels for the line number gutter.
+        /// Synchronized with the main TextBox's vertical scroll position from the View layer.
+        /// </summary>
+        /// <value>Non-negative double representing the vertical offset in device-independent pixels.</value>
+        public double LineScrollOffset
+        {
+            get => _lineScrollOffset;
+            set => Set(ref _lineScrollOffset, value);
+        }
 
         public bool CanExecute => !IsBusy;
 
@@ -412,6 +503,29 @@ namespace Savaged.BlackNotepad.ViewModels
             {
                 await Open(_openFileDialog.FileName);
             }
+        }
+
+        /// <summary>
+        /// Opens a file directly from a path provided by the recent files menu,
+        /// bypassing the file dialog.
+        /// </summary>
+        /// <param name="path">Full file path to open. If null or empty, the operation is ignored.</param>
+        private async void OnOpenRecent(string path)
+        {
+            if (string.IsNullOrEmpty(path))
+            {
+                return;
+            }
+            var saveChanges = SaveChangesConfirmation();
+            if (saveChanges == true)
+            {
+                await SaveAsync();
+            }
+            else if (saveChanges is null)
+            {
+                return;
+            }
+            await Open(path);
         }
 
         private async void OnSave()
@@ -963,6 +1077,10 @@ namespace Savaged.BlackNotepad.ViewModels
                 case nameof(SelectedItem.Content):
                     RaisePropertyChanged(nameof(IsUndoEnabled));
                     RaisePropertyChanged(nameof(IsSelectAllEnabled));
+                    RaisePropertyChanged(nameof(WordCount));
+                    break;
+                case nameof(SelectedItem.LineEnding):
+                    RaisePropertyChanged(nameof(LineEndingDisplay));
                     break;
             }
         }
@@ -999,6 +1117,71 @@ namespace Savaged.BlackNotepad.ViewModels
             finally
             {
                 EndLongOpertation();
+            }
+        }
+
+        /// <summary>
+        /// Adds the specified file path to the top of the Recent Files list.
+        /// Removes any duplicate entry first. Limits the list to 10 items.
+        /// </summary>
+        /// <param name="path">Full file path to add. Ignored if null or whitespace.</param>
+        private void AddToRecentFiles(string path)
+        {
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                return;
+            }
+            var recentFiles = ViewState.RecentFiles;
+            for (int i = recentFiles.Count - 1; i >= 0; i--)
+            {
+                if (string.Equals(recentFiles[i], path,
+                    StringComparison.OrdinalIgnoreCase))
+                {
+                    recentFiles.RemoveAt(i);
+                }
+            }
+            recentFiles.Insert(0, path);
+            while (recentFiles.Count > 10)
+            {
+                recentFiles.RemoveAt(recentFiles.Count - 1);
+            }
+        }
+
+        /// <summary>
+        /// Handles the auto-save timer tick. Saves the document automatically
+        /// when it is dirty and has a saved file location.
+        /// </summary>
+        /// <param name="sender">The DispatcherTimer that raised the tick.</param>
+        /// <param name="e">Timer event arguments. Unused.</param>
+        private async void OnAutoSaveTick(object sender, EventArgs e)
+        {
+            if (SelectedItem != null && SelectedItem.IsDirty
+                && !SelectedItem.IsNew
+                && !string.IsNullOrEmpty(SelectedItem.Location))
+            {
+                await SaveAsync();
+            }
+        }
+
+        /// <summary>
+        /// Opens the system Print dialog to preview and print the current document.
+        /// </summary>
+        private void OnPrintPreview()
+        {
+            if (SelectedItem is null || !SelectedItem.HasContent)
+            {
+                return;
+            }
+            var printDialog = new PrintDialog();
+            if (printDialog.ShowDialog() == true)
+            {
+                var flowDoc = new System.Windows.Documents.FlowDocument(
+                    new System.Windows.Documents.Paragraph(
+                        new System.Windows.Documents.Run(SelectedItem.Content)));
+                var documentPaginator =
+                    ((System.Windows.Documents.IDocumentPaginatorSource)flowDoc)
+                    .DocumentPaginator;
+                printDialog.PrintDocument(documentPaginator, Title);
             }
         }
     }

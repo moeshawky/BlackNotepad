@@ -1,6 +1,9 @@
 ﻿using Savaged.BlackNotepad.ViewModels;
 using System.ComponentModel;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
+using System.Windows.Threading;
 
 namespace Savaged.BlackNotepad.Views
 {
@@ -8,10 +11,16 @@ namespace Savaged.BlackNotepad.Views
     {
         private MainViewModel _viewModel;
         private bool _isClosing;
+        private readonly DispatcherTimer _scrollSyncTimer;
 
         public MainWindow()
         {
             InitializeComponent();
+            _scrollSyncTimer = new DispatcherTimer
+            {
+                Interval = System.TimeSpan.FromMilliseconds(100)
+            };
+            _scrollSyncTimer.Tick += OnScrollSyncTick;
         }
 
         private void OnLoaded(object sender, RoutedEventArgs e)
@@ -20,6 +29,7 @@ namespace Savaged.BlackNotepad.Views
             _viewModel.GoToRequested += OnGoToRequested;
             _viewModel.FocusRequested += OnFocusRequested;
             _viewModel.TimeDateRequested += OnTimeDateRequested;
+            _scrollSyncTimer.Start();
         }
 
         private void OnTimeDateRequested()
@@ -74,6 +84,7 @@ namespace Savaged.BlackNotepad.Views
         {
             if (_viewModel != null && !_isClosing)
             {
+                _scrollSyncTimer.Stop();
                 _isClosing = await _viewModel.OnClosing();                
                 if (_isClosing)
                 {
@@ -141,6 +152,38 @@ namespace Savaged.BlackNotepad.Views
         private void OnSelectAllMenuItemClick(object sender, RoutedEventArgs e)
         {
             ContentText.SelectAll();
+        }
+
+        private void OnScrollSyncTick(object sender, EventArgs e)
+        {
+            if (_viewModel == null)
+            {
+                return;
+            }
+            _viewModel.LineNumberCount = ContentText.LineCount;
+            var scrollViewer = FindChildScrollViewer(ContentText);
+            if (scrollViewer != null)
+            {
+                _viewModel.LineScrollOffset = scrollViewer.VerticalOffset;
+            }
+        }
+
+        private static ScrollViewer FindChildScrollViewer(DependencyObject parent)
+        {
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
+            {
+                var child = VisualTreeHelper.GetChild(parent, i);
+                if (child is ScrollViewer viewer)
+                {
+                    return viewer;
+                }
+                var result = FindChildScrollViewer(child);
+                if (result != null)
+                {
+                    return result;
+                }
+            }
+            return null;
         }
     }
 }

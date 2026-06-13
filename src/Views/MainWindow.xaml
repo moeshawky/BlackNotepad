@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:converters="clr-namespace:Savaged.BlackNotepad.Converters"
+        xmlns:controls="clr-namespace:Savaged.BlackNotepad.Views.Controls"
         mc:Ignorable="d"
         Title="{Binding Title}" 
         Background="{DynamicResource MainBackgroundBrush}"
@@ -31,6 +32,7 @@
         <KeyBinding Gesture="Ctrl+Minus" Command="{Binding ZoomOutCmd}"/>
         <KeyBinding Gesture="Ctrl+0" Command="{Binding RestoreDefaultZoomCmd}"/>
         <KeyBinding Key="F1" Command="{Binding HelpCmd}"/>
+        <KeyBinding Gesture="Ctrl+Shift+P" Command="{Binding PrintPreviewCmd}"/>
     </Window.InputBindings>
     <DockPanel FocusManager.FocusedElement="{Binding ElementName=ContentText}">
         <Menu DockPanel.Dock="Top" Margin="0,0,0.4,0" Background="DarkGray">
@@ -62,6 +64,22 @@
                           InputGestureText="Ctrl+S"/>
                 <MenuItem Header="Save _As..." 
                           Command="{Binding SaveAsCmd}"/>
+                <Separator/>
+                <MenuItem Header="Print _Preview..."
+                          Command="{Binding PrintPreviewCmd}"
+                          InputGestureText="Ctrl+Shift+P"/>
+                <Separator/>
+                <MenuItem Header="Recent _Files"
+                          ItemsSource="{Binding ViewState.RecentFiles}">
+                    <MenuItem.ItemContainerStyle>
+                        <Style TargetType="MenuItem">
+                            <Setter Property="Header" Value="{Binding}"/>
+                            <Setter Property="Command"
+                                    Value="{Binding DataContext.OpenRecentCmd, RelativeSource={RelativeSource AncestorType=Window}}"/>
+                            <Setter Property="CommandParameter" Value="{Binding}"/>
+                        </Style>
+                    </MenuItem.ItemContainerStyle>
+                </MenuItem>
                 <Separator/>
                 <MenuItem Header="E_xit" 
                           Command="{Binding ExitCmd}"/>
@@ -155,6 +173,7 @@
                             <ColumnDefinition Width="1*"/>
                             <ColumnDefinition Width="1*"/>
                             <ColumnDefinition Width="1*"/>
+                            <ColumnDefinition Width="1*"/>
                         </Grid.ColumnDefinitions>
                     </Grid>
                 </ItemsPanelTemplate>
@@ -164,18 +183,28 @@
                            Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibilityConverter}}"/>
             </StatusBarItem>
             <StatusBarItem Grid.Column="1">
-                <TextBlock Text="{Binding SelectedItem.LineEnding, Converter={StaticResource LineEndingConverter}}"/>
+                <TextBlock Text="{Binding WordCount, StringFormat='Words: {0}'}"/>
             </StatusBarItem>
             <StatusBarItem Grid.Column="2">
-                <TextBlock Text="{Binding CaretPosition, Converter={StaticResource CoordsConverter}}"/>
+                <TextBlock Text="{Binding LineEndingDisplay}"/>
             </StatusBarItem>
             <StatusBarItem Grid.Column="3">
+                <TextBlock Text="{Binding CaretPosition, Converter={StaticResource CoordsConverter}}"/>
+            </StatusBarItem>
+            <StatusBarItem Grid.Column="4">
                 <StackPanel Orientation="Horizontal">
                     <TextBlock Text="{Binding ViewState.SelectedFontZoom.Zoom}"/>
                     <TextBlock>%</TextBlock>
                 </StackPanel>
             </StatusBarItem>
         </StatusBar>
+        
+        <controls:LineNumbersControl Name="LineNumbersGutter"
+                                     DockPanel.Dock="Left"
+                                     Width="50"
+                                     LineCount="{Binding LineNumberCount}"
+                                     LineHeight="{Binding ViewState.SelectedFontZoom.FontSize}"
+                                     ScrollOffset="{Binding LineScrollOffset}"/>
         
         <TextBox Name="ContentText" 
                  Background="{DynamicResource MainBackgroundBrush}" 

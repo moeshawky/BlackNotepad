@@ -1,4 +1,5 @@
 ﻿using GalaSoft.MvvmLight;
+using System.Collections.ObjectModel;
 
 namespace Savaged.BlackNotepad.Models
 {
@@ -9,6 +10,7 @@ namespace Savaged.BlackNotepad.Models
         private FontZoomModel _selectedFontZoom = new FontZoomModel { IsSelected = true };
         private FontColourModel _selectedFontColour = new FontColourModel { IsSelected = true };
         private FontFamilyModel _selectedFontFamily = new FontFamilyModel { IsSelected = true };
+        private bool _autoSaveEnabled = true;
 
         /// <summary>
         /// Parameterless constructor for JSON deserialization.
@@ -75,6 +77,25 @@ namespace Savaged.BlackNotepad.Models
                 value.IsSelected = true;
                 Set(ref _selectedFontFamily, value);
             }
+        }
+
+        /// <summary>
+        /// Ordered collection of recently opened file paths. Most recent entry is at index 0.
+        /// Limited to 10 entries maximum; duplicates are removed before insertion.
+        /// </summary>
+        /// <value>ObservableCollection of file path strings. Never null after construction.</value>
+        public ObservableCollection<string> RecentFiles { get; }
+            = new ObservableCollection<string>();
+
+        /// <summary>
+        /// Gets or sets whether auto-save is enabled. When true, the editor automatically
+        /// saves dirty files at a fixed interval (60 seconds).
+        /// </summary>
+        /// <value>True if auto-save is active; false to disable. Defaults to true.</value>
+        public bool AutoSaveEnabled
+        {
+            get => _autoSaveEnabled;
+            set => Set(ref _autoSaveEnabled, value);
         }
     }
 }
