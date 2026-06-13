@@ -15,6 +15,7 @@
         <converters:CoordsToDisplayNameConverter x:Key="CoordsConverter"/>
         <converters:LineEndingEnumToDisplayNameConverter x:Key="LineEndingConverter"/>
         <converters:TrueFalseToWrapNoWrapConverter x:Key="BoolToWrappingConverter"/>
+        <converters:ThemeModeConverter x:Key="ThemeModeConverter"/>
         <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
     </Window.Resources>
     <Window.InputBindings>
@@ -35,7 +36,7 @@
         <KeyBinding Gesture="Ctrl+Shift+P" Command="{Binding PrintPreviewCmd}"/>
     </Window.InputBindings>
     <DockPanel FocusManager.FocusedElement="{Binding ElementName=ContentText}">
-        <Menu DockPanel.Dock="Top" Margin="0,0,0.4,0" Background="DarkGray">
+        <Menu DockPanel.Dock="Top" Margin="0,0,0.4,0" Background="{DynamicResource MenuBackgroundBrush}">
             <Menu.Resources>
                 <Style TargetType="MenuItem" x:Key="FontColourMenu">
                     <Setter Property="Header" Value="{Binding Value}"/>
@@ -153,6 +154,21 @@
                 <MenuItem Header="_Status Bar" 
                           Command="{Binding StatusBarCmd}" 
                           IsChecked="{Binding ViewState.IsStatusBarVisible}"/>
+                <Separator/>
+                <MenuItem Header="_Theme">
+                    <MenuItem Header="_Dark" 
+                              Command="{Binding ThemeModeCmd}" 
+                              CommandParameter="Dark"
+                              IsChecked="{Binding ViewState.SelectedThemeMode, Converter={StaticResource ThemeModeConverter}, ConverterParameter=Dark}"/>
+                    <MenuItem Header="_Light" 
+                              Command="{Binding ThemeModeCmd}" 
+                              CommandParameter="Light"
+                              IsChecked="{Binding ViewState.SelectedThemeMode, Converter={StaticResource ThemeModeConverter}, ConverterParameter=Light}"/>
+                    <MenuItem Header="_System" 
+                              Command="{Binding ThemeModeCmd}" 
+                              CommandParameter="System"
+                              IsChecked="{Binding ViewState.SelectedThemeMode, Converter={StaticResource ThemeModeConverter}, ConverterParameter=System}"/>
+                </MenuItem>
             </MenuItem>
             <MenuItem Header="_Help">
                 <MenuItem Header="_Help" Command="{Binding HelpCmd}"/>

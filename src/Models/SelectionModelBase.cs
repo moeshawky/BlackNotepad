@@ -1,5 +1,6 @@
 ﻿using GalaSoft.MvvmLight;
 using System;
+using System.Collections.Generic;
 
 namespace Savaged.BlackNotepad.Models
 {
@@ -37,10 +38,10 @@ namespace Savaged.BlackNotepad.Models
 
         public override int GetHashCode()
         {
-            var value = Key.GetHashCode();
-            value *= 0x00010000;
-            value *= Value.GetHashCode();
-            return value;
+            unchecked
+            {
+                return (Key.GetHashCode() * 397) ^ Value.GetHashCode();
+            }
         }
 
         public override bool Equals(object o)
@@ -71,8 +72,8 @@ namespace Savaged.BlackNotepad.Models
             // Return true if the fields match.
             // Note that the base class is not invoked because it is
             // System.Object, which defines Equals as reference equality.
-            return (Key.ToString() == s.Key.ToString()) &&
-                (Value.ToString() == s.Value.ToString());
+            return EqualityComparer<TKey>.Default.Equals(Key, s.Key) &&
+                EqualityComparer<TValue>.Default.Equals(Value, s.Value);
         }
     }
 }

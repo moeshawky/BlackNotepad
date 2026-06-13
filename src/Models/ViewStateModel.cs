@@ -11,6 +11,7 @@ namespace Savaged.BlackNotepad.Models
         private FontColourModel _selectedFontColour = new FontColourModel { IsSelected = true };
         private FontFamilyModel _selectedFontFamily = new FontFamilyModel { IsSelected = true };
         private bool _autoSaveEnabled = true;
+        private ThemeMode _selectedThemeMode = ThemeMode.Dark;
 
         /// <summary>
         /// Parameterless constructor for JSON deserialization.
@@ -96,6 +97,17 @@ namespace Savaged.BlackNotepad.Models
         {
             get => _autoSaveEnabled;
             set => Set(ref _autoSaveEnabled, value);
+        }
+
+        /// <summary>
+        /// Gets or sets the selected theme mode (Dark, Light, or System).
+        /// Determines the application's color scheme.
+        /// </summary>
+        /// <value>The current ThemeMode. Defaults to ThemeMode.Dark.</value>
+        public ThemeMode SelectedThemeMode
+        {
+            get => _selectedThemeMode;
+            set => Set(ref _selectedThemeMode, value);
         }
     }
 }

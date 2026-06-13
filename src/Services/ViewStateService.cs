@@ -62,12 +62,10 @@ namespace Savaged.BlackNotepad.Services
         {
             var json = JsonConvert.SerializeObject(viewState);
 
-            var fileInfo = new FileInfo(_fileLocation);
-            if (fileInfo.Exists)
-            {
-                File.Delete(_fileLocation);
-            }
-            File.WriteAllText(_fileLocation, json);
+            var tempLocation = _fileLocation + ".tmp";
+            File.WriteAllText(tempLocation, json);
+
+            File.Move(tempLocation, _fileLocation);
         }
     }
 }

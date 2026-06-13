@@ -1,4 +1,6 @@
-﻿using Savaged.BlackNotepad.ViewModels;
+﻿using System;
+using Savaged.BlackNotepad.Services;
+using Savaged.BlackNotepad.ViewModels;
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
@@ -12,10 +14,12 @@ namespace Savaged.BlackNotepad.Views
         private MainViewModel _viewModel;
         private bool _isClosing;
         private readonly DispatcherTimer _scrollSyncTimer;
+        private readonly IThemeService _themeService;
 
-        public MainWindow()
+        public MainWindow(IThemeService themeService)
         {
             InitializeComponent();
+            _themeService = themeService;
             _scrollSyncTimer = new DispatcherTimer
             {
                 Interval = System.TimeSpan.FromMilliseconds(100)
@@ -30,6 +34,11 @@ namespace Savaged.BlackNotepad.Views
             _viewModel.FocusRequested += OnFocusRequested;
             _viewModel.TimeDateRequested += OnTimeDateRequested;
             _scrollSyncTimer.Start();
+
+            if (_themeService != null && _viewModel?.ViewState != null)
+            {
+                _themeService.ApplyTheme(_viewModel.ViewState.SelectedThemeMode);
+            }
         }
 
         private void OnTimeDateRequested()

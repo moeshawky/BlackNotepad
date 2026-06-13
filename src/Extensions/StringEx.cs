@@ -1,4 +1,5 @@
-﻿using Savaged.BlackNotepad.Lookups;
+﻿using System;
+using Savaged.BlackNotepad.Lookups;
 
 namespace Savaged.BlackNotepad.Extensions
 {
@@ -7,27 +8,36 @@ namespace Savaged.BlackNotepad.Extensions
         public static int LineOfIndexOrDefault(
             this string self, int index, LineEndings lineEnding)
         {
-            var lineEndingChar = '\r';
+            if (string.IsNullOrEmpty(self))
+            {
+                return 1;
+            }
+
+            var lineEndingStr = "\r";
             if (lineEnding == LineEndings.LF)
             {
-                lineEndingChar = '\n';
+                lineEndingStr = "\n";
             }
-            var linesCounted = 0;
-            var value = 1;
-            for (int i = 0; i < self.Length; i++)
+            else if (lineEnding == LineEndings.CRLF)
             {
-                if (self[i] == lineEndingChar
-                    || i == self.Length - 1)
-                {
-                    linesCounted++;
-                }
-                if (index == i)
-                {
-                    value = linesCounted;
-                    break;
-                }
+                lineEndingStr = "\r\n";
             }
-            return value;
+
+            var lines = self.Split(new[] { lineEndingStr }, 
+                StringSplitOptions.None);
+
+            var charCount = 0;
+            for (int i = 0; i < lines.Length; i++)
+            {
+                charCount += lines[i].Length;
+                if (index < charCount)
+                {
+                    return i + 1;
+                }
+                charCount += lineEndingStr.Length;
+            }
+
+            return lines.Length > 0 ? lines.Length : 1;
         }
     }
 }

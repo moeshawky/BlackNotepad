@@ -18,6 +18,7 @@ using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Threading;
 
 namespace Savaged.BlackNotepad.ViewModels
@@ -26,6 +27,7 @@ namespace Savaged.BlackNotepad.ViewModels
     {
         private readonly IDialogService _dialogService;
         private readonly IFileModelService _fileModelService;
+        private readonly IThemeService _themeService;
         private readonly IList<string> _busyRegister;
         private readonly OpenFileDialog _openFileDialog;
         private readonly SaveFileDialog _saveFileDialog;
@@ -51,6 +53,7 @@ namespace Savaged.BlackNotepad.ViewModels
         public MainViewModel(
             IDialogService dialogService,
             IViewStateService viewStateService,
+            IThemeService themeService,
             IFontColourLookupService fontColourLookupService,
             IFontFamilyLookupService fontFamilyLookupService,
             IFontZoomLookupService fontZoomLookupService,
@@ -84,6 +87,8 @@ namespace Savaged.BlackNotepad.ViewModels
             _fileModelService = fileModelService;
 
             _dialogService = dialogService;
+
+            _themeService = themeService;
 
             const string filter = "Text Documents|*.txt|All files (*.*)|*.*";
             _openFileDialog = _dialogService.GetFileDialog<OpenFileDialog>();
@@ -149,6 +154,8 @@ namespace Savaged.BlackNotepad.ViewModels
             PrettifyJsonCmd = new RelayCommand(
                 OnPrettifyJson, () => CanExecutePrettifyJson);
             PrintPreviewCmd = new RelayCommand(OnPrintPreview, () => CanExecute);
+            ThemeModeCmd = new RelayCommand<ThemeMode>(
+                OnThemeMode, (m) => CanExecute);
 
             _autoSaveTimer = new DispatcherTimer
             {
@@ -333,6 +340,7 @@ namespace Savaged.BlackNotepad.ViewModels
         public RelayCommand<FontFamilyModel> FontFamilyCmd { get; }
         public RelayCommand PrettifyJsonCmd { get; }
         public RelayCommand PrintPreviewCmd { get; }
+        public RelayCommand<ThemeMode> ThemeModeCmd { get; }
 
         /// <summary>
         /// Returns the number of whitespace-separated words in the current document content.
@@ -760,6 +768,11 @@ namespace Savaged.BlackNotepad.ViewModels
             }
             else
             {
+                if (string.IsNullOrEmpty(SelectedItem.Content))
+                {
+                    return;
+                }
+
                 var allText = _isFindMatchCase ?
                     SelectedItem.Content : 
                     SelectedItem.Content?.ToLower();
@@ -860,8 +873,32 @@ namespace Savaged.BlackNotepad.ViewModels
                 lineCharToInclude = 1;
             }
             var text = SelectedItem.Content;
+            if (string.IsNullOrEmpty(text))
+            {
+                return;
+            }
+
             var linesCounted = 0;
+            for (int i = 0; i < text.Length; i++)
+            {
+                if (text[i] == lineEndingChar
+                    || i == text.Length - 1)
+                {
+                    linesCounted++;
+                }
+            }
+
+            if (lineNumberSought < 1)
+            {
+                lineNumberSought = 1;
+            }
+            else if (lineNumberSought > linesCounted)
+            {
+                lineNumberSought = linesCounted;
+            }
+
             var charsInLine = 0;
+            linesCounted = 0;
             for (int i = 0; i < text.Length; i++)
             {
                 charsInLine++;
@@ -1018,6 +1055,12 @@ namespace Savaged.BlackNotepad.ViewModels
         {
             ViewState.SelectedFontColour = selected;
             ApplySelectedOnFontColour();
+        }
+
+        private void OnThemeMode(ThemeMode mode)
+        {
+            ViewState.SelectedThemeMode = mode;
+            _themeService.ApplyTheme(mode);
         }
 
         private void ApplySelectedOnFontColour()

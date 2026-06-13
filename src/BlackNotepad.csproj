@@ -115,6 +115,7 @@
     <Compile Include="Converters\CoordsToDisplayNameConverter.cs" />
     <Compile Include="Converters\BoolToRadioButtonCheckedConverter.cs" />
     <Compile Include="Converters\LineEndingEnumToDisplayNameConverter.cs" />
+    <Compile Include="Converters\ThemeModeConverter.cs" />
     <Compile Include="Converters\TrueFalseToWrapNoWrapConverter.cs" />
     <Compile Include="Extensions\StringEx.cs" />
     <Compile Include="Lookups\LineEndings.cs" />
@@ -124,6 +125,7 @@
     <Compile Include="Models\SelectionModelBase.cs" />
     <Compile Include="Models\FontFamilyModel.cs" />
     <Compile Include="Models\FontColourModel.cs" />
+    <Compile Include="Models\ThemeMode.cs" />
     <Compile Include="Models\ViewStateModel.cs" />
     <Compile Include="Services\DialogService.cs" />
     <Compile Include="Services\FileModelService.cs" />
@@ -138,6 +140,8 @@
     <Compile Include="Services\LookupServiceBase.cs" />
     <Compile Include="Services\FontFamilyLookupService.cs" />
     <Compile Include="Services\FontColourLookupService.cs" />
+    <Compile Include="Services\IThemeService.cs" />
+    <Compile Include="Services\ThemeService.cs" />
     <Compile Include="Services\IViewStateService.cs" />
     <Compile Include="Services\ViewStateService.cs" />
     <Compile Include="ViewModels\DialogViewModelBase.cs" />

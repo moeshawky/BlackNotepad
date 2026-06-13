@@ -1,12 +1,15 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
+    <!-- Default Dark Theme Resources -->
     <SolidColorBrush x:Key="MainBackgroundBrush" Color="Black" />
     <SolidColorBrush x:Key="StandOutBackgroundBrush" Color="DarkGray" />
     <SolidColorBrush x:Key="MainBorderBrush" Color="SlateGray" />
+    <SolidColorBrush x:Key="MenuBackgroundBrush" Color="DarkGray" />
+    <SolidColorBrush x:Key="TextForegroundBrush" Color="White" />
 
     <ItemsPanelTemplate x:Key="MenuItemPanelTemplate">
-        <StackPanel Background="LightGray"/>
+        <StackPanel Background="{DynamicResource MenuBackgroundBrush}"/>
     </ItemsPanelTemplate>
     <Style TargetType="{x:Type MenuItem}">
         <Setter Property="ItemsPanel" Value="{DynamicResource MenuItemPanelTemplate}"/>

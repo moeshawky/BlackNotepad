@@ -43,7 +43,7 @@ namespace Savaged.BlackNotepad.Services
             }
 
             string content;
-            using (var sr = new StreamReader(fileModel.Location))
+            using (var sr = new StreamReader(fileModel.Location, true))
             {
                 content = sr.ReadToEnd();
             }
