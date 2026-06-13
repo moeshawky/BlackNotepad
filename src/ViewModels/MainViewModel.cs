@@ -156,6 +156,7 @@ namespace Savaged.BlackNotepad.ViewModels
             PrintPreviewCmd = new RelayCommand(OnPrintPreview, () => CanExecute);
             ThemeModeCmd = new RelayCommand<ThemeMode>(
                 OnThemeMode, (m) => CanExecute);
+            LineNumbersCmd = new RelayCommand(OnLineNumbers, () => CanExecute);
 
             _autoSaveTimer = new DispatcherTimer
             {
@@ -341,6 +342,7 @@ namespace Savaged.BlackNotepad.ViewModels
         public RelayCommand PrettifyJsonCmd { get; }
         public RelayCommand PrintPreviewCmd { get; }
         public RelayCommand<ThemeMode> ThemeModeCmd { get; }
+        public RelayCommand LineNumbersCmd { get; }
 
         /// <summary>
         /// Returns the number of whitespace-separated words in the current document content.
@@ -1061,6 +1063,11 @@ namespace Savaged.BlackNotepad.ViewModels
         {
             ViewState.SelectedThemeMode = mode;
             _themeService.ApplyTheme(mode);
+        }
+
+        private void OnLineNumbers()
+        {
+            ViewState.IsLineNumbersVisible = !ViewState.IsLineNumbersVisible;
         }
 
         private void ApplySelectedOnFontColour()

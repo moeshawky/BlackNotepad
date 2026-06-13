@@ -154,6 +154,9 @@
                 <MenuItem Header="_Status Bar" 
                           Command="{Binding StatusBarCmd}" 
                           IsChecked="{Binding ViewState.IsStatusBarVisible}"/>
+                <MenuItem Header="_Line Numbers"
+                          Command="{Binding LineNumbersCmd}"
+                          IsChecked="{Binding ViewState.IsLineNumbersVisible}"/>
                 <Separator/>
                 <MenuItem Header="_Theme">
                     <MenuItem Header="_Dark" 
@@ -218,6 +221,7 @@
         <controls:LineNumbersControl x:Name="LineNumbersGutter"
                                      DockPanel.Dock="Left"
                                      Width="50"
+                                     Visibility="{Binding ViewState.IsLineNumbersVisible, Converter={StaticResource BoolToVisibilityConverter}}"
                                      LineCount="{Binding LineNumberCount}"
                                      LineHeight="{Binding ViewState.SelectedFontZoom.FontSize}"
                                      ScrollOffset="{Binding LineScrollOffset}"/>

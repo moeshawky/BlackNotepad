@@ -61,8 +61,10 @@ namespace Savaged.BlackNotepad.Services
             var app = Application.Current;
             if (app == null) return;
 
-            var resourceDict = app.Resources;
-            if (resourceDict == null) return;
+            var mergedDicts = app.Resources.MergedDictionaries;
+            if (mergedDicts == null || mergedDicts.Count == 0) return;
+
+            var resourceDict = mergedDicts[0];
 
             if (mode == ThemeMode.Dark)
             {
