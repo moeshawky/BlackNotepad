@@ -1,7 +1,6 @@
 ﻿using GalaSoft.MvvmLight;
 using Savaged.BlackNotepad.Lookups;
 using System.IO;
-using System.Text;
 
 namespace Savaged.BlackNotepad.Models
 {
@@ -14,7 +13,6 @@ namespace Savaged.BlackNotepad.Models
         private string _content;
         private LineEndings _lineEnding;
         private string _previousContent;
-        private int _position;
         private bool _isDirty;
 
         public FileModel()
@@ -73,12 +71,6 @@ namespace Savaged.BlackNotepad.Models
                     }
                 }
             }
-        }
-
-        public int Position
-        {
-            get => _position;
-            set => Set(ref _position, value);
         }
 
         public LineEndings LineEnding

@@ -31,7 +31,7 @@ namespace Savaged.BlackNotepad.Services
 
         public override FontZoomModel GetDefault()
         {
-            var value = Index.Where(f => f.Key == _default).FirstOrDefault();
+            var value = Index.Where(f => f.Key == _default).FirstOrDefault() ?? Index.First();
             return value;
         }
     }

@@ -33,12 +33,12 @@ A clean, fast text editor that remembers your preferences:
 ### Key Features
 
 - ✅ **File Association Fix** - Double-clicked .txt files open correctly
-- ✅ **Theme Support** - Dark, Light, and System themes
-- ✅ **Window Persistence** - Remembers size, position, and maximized state
-- ✅ **UTF-8 Encoding** - Proper BOM handling and detection
-- ✅ **Extended Formats** - .md, .json, .xml, .csv, .html, .js, .py, .sql, .yaml, and more
-- ✅ **Custom Colors** - 10 font background colors
-- ✅ **Zoom Levels** - 24 zoom levels from 8pt to 72pt
+- ✅ **Theme Support** - Dark and Light themes
+- ✅ **Window Persistence** - Remembers font settings, zoom, and word wrap
+- ✅ **UTF-8 Encoding** - Standard text file support
+- ✅ **Extended Formats** - Standard text files — .txt and all file types
+- ✅ **Custom Colors** - Font color selection
+- ✅ **Zoom Levels** - Multiple zoom levels from 8pt to 600%
 - ✅ **Print Support** - Print documents directly (Ctrl+P)
 
 ---
@@ -133,7 +133,7 @@ iexpress /N /Q /S BlackNotepad.sed
 ### View Menu
 
 - Status bar toggle
-- Theme selection (Dark/Light/System)
+- Theme selection (Dark/Light)
 
 ---
 
@@ -142,8 +142,7 @@ iexpress /N /Q /S BlackNotepad.sed
 ### Settings Location
 
 ```
-%APPDATA%\BlackNotepad\
-├── viewstate.json    # Window position, theme, font settings
+%LOCALAPPDATA%\BlackNotepad.ViewState.json
 ```
 
 ---

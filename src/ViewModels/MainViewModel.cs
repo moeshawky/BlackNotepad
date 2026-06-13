@@ -84,7 +84,6 @@ namespace Savaged.BlackNotepad.ViewModels
             _fileModelService = fileModelService;
 
             _dialogService = dialogService;
-            _dialogService.DialogDone += OnDialogDone;
 
             const string filter = "Text Documents|*.txt|All files (*.*)|*.*";
             _openFileDialog = _dialogService.GetFileDialog<OpenFileDialog>();
@@ -205,16 +204,32 @@ namespace Savaged.BlackNotepad.ViewModels
         public async Task Open(string location)
         {
             StartLongOperation();
+            try
+            {
+                SelectedItem = await _fileModelService
+                    .LoadAsync(location);
 
-            SelectedItem = await _fileModelService
-                .LoadAsync(location);
-
-            RaisePropertyChanged(nameof(Title));
-            RaisePropertyChanged(nameof(WordCount));
-            RaisePropertyChanged(nameof(LineEndingDisplay));
-            AddToRecentFiles(location);
-
-            EndLongOpertation();
+                RaisePropertyChanged(nameof(Title));
+                RaisePropertyChanged(nameof(WordCount));
+                RaisePropertyChanged(nameof(LineEndingDisplay));
+                AddToRecentFiles(location);
+            }
+            catch (System.IO.FileNotFoundException)
+            {
+                System.Diagnostics.Debug.WriteLine($"File not found: {location}");
+            }
+            catch (System.IO.IOException ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"IO error loading file: {ex.Message}");
+            }
+            catch (UnauthorizedAccessException)
+            {
+                System.Diagnostics.Debug.WriteLine($"Access denied: {location}");
+            }
+            finally
+            {
+                EndLongOpertation();
+            }
         }
 
         public string Title => $"{SelectedItem?.Name} - Black Notepad";
@@ -395,9 +410,6 @@ namespace Savaged.BlackNotepad.ViewModels
 
         public bool CanExecuteOpen => CanExecute;
 
-        public bool CanExecuteSave => CanExecute &&
-            SelectedItem.IsDirty;
-
         public bool CanExecuteZoomIn => CanExecute && !_isFontZoomMax;
 
         public bool CanExecuteZoomOut => CanExecute && !_isFontZoomMin;
@@ -412,9 +424,6 @@ namespace Savaged.BlackNotepad.ViewModels
             _findNextCount > 0;
 
         public bool CanExecuteReplace => CanExecute;
-
-        public bool CanExecuteGoTo => CanExecute &&
-            SelectedItem.HasContent && !ViewState.IsWrapped;
 
         public bool CanExecuteDragDrop => CanExecute &&
             !SelectedItem.IsDirty;
@@ -469,7 +478,14 @@ namespace Savaged.BlackNotepad.ViewModels
 
         private async void OnNew()
         {
-            await New();
+            try
+            {
+                await New();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"New failed: {ex.Message}");
+            }
         }
 
         private async Task New()
@@ -489,19 +505,26 @@ namespace Savaged.BlackNotepad.ViewModels
 
         private async void OnOpen()
         {
-            var saveChanges = SaveChangesConfirmation();
-            if (saveChanges == true)
+            try
             {
-                await SaveAsync();
+                var saveChanges = SaveChangesConfirmation();
+                if (saveChanges == true)
+                {
+                    await SaveAsync();
+                }
+                else if (saveChanges is null)
+                {
+                    return;
+                }
+                var result = _openFileDialog.ShowDialog();
+                if (result == true)
+                {
+                    await Open(_openFileDialog.FileName);
+                }
             }
-            else if (saveChanges is null)
+            catch (Exception ex)
             {
-                return;
-            }
-            var result = _openFileDialog.ShowDialog();
-            if (result == true)
-            {
-                await Open(_openFileDialog.FileName);
+                System.Diagnostics.Debug.WriteLine($"Open failed: {ex.Message}");
             }
         }
 
@@ -537,12 +560,23 @@ namespace Savaged.BlackNotepad.ViewModels
             if (!SelectedItem.IsNew)
             {
                 StartLongOperation();
-
-                await _fileModelService.SaveAsync(SelectedItem);
-
-                RaisePropertyChanged(nameof(Title));
-
-                EndLongOpertation();
+                try
+                {
+                    await _fileModelService.SaveAsync(SelectedItem);
+                    RaisePropertyChanged(nameof(Title));
+                }
+                catch (System.IO.IOException ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"IO error saving file: {ex.Message}");
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Access denied saving file: {SelectedItem.Location}");
+                }
+                finally
+                {
+                    EndLongOpertation();
+                }
             }
             else
             {
@@ -552,7 +586,14 @@ namespace Savaged.BlackNotepad.ViewModels
 
         private async void OnSaveAs()
         {
-            await SaveAsAsync();
+            try
+            {
+                await SaveAsAsync();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"SaveAs failed: {ex.Message}");
+            }
         }
         private async Task SaveAsAsync()
         {
@@ -572,11 +613,6 @@ namespace Savaged.BlackNotepad.ViewModels
 
         private void OnDialogDone(object sender, IDialogDoneEventArgs e)
         {
-            //if (sender is IDialog dialog
-            //    && dialog.DataContext is FindDialogViewModel vm)
-            //{
-            //    vm?.ResetFilters();
-            //}
         }
 
         private void OnFind()
@@ -1113,7 +1149,10 @@ namespace Savaged.BlackNotepad.ViewModels
                 SelectedItem.Content = JsonConvert
                     .SerializeObject(parsed, Formatting.Indented);
             }
-            catch { }
+            catch (JsonException)
+            {
+                System.Diagnostics.Debug.WriteLine("Failed to prettify JSON: invalid JSON content");
+            }
             finally
             {
                 EndLongOpertation();
@@ -1159,7 +1198,14 @@ namespace Savaged.BlackNotepad.ViewModels
                 && !SelectedItem.IsNew
                 && !string.IsNullOrEmpty(SelectedItem.Location))
             {
-                await SaveAsync();
+                try
+                {
+                    await SaveAsync();
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Auto-save failed: {ex.Message}");
+                }
             }
         }
 
