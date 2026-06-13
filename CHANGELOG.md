@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Fixed
+- Removed empty OnDialogDone method (dead code)
+- Removed LineEndingDisplay property duplication (now uses converter directly)
+- Updated README.md to remove false theme support claims
+- Added AGENTS.md to .gitignore (agentic artifact exclusion)
+
 ## [1.0.10] - 2026-01-24
 
 ### Performance

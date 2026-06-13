@@ -3,6 +3,19 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
+# Agent context files — never publish these
+AGENTS.md
+agents.md
+references/
+*.agent/
+.agents/
+.cursor/
+.claude/
+copilot-instructions.md
+.github/copilot-instructions.md
+.github/copilot/
+.github/agents/
+
 # User-specific files
 *.rsuser
 *.suo
