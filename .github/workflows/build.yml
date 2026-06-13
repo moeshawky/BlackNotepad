@@ -1,8 +1,9 @@
-name: Build
+name: Build and Release
 
 on:
   push:
     branches: [master]
+    tags: ['v*']
   pull_request:
     branches: [master]
 
@@ -17,19 +18,22 @@ jobs:
         uses: microsoft/setup-msbuild@v2
 
       - name: Setup NuGet
-        uses: NuGet/setup-nuget@v2
+        uses: nuget/setup-nuget@v2
 
-      - name: Restore packages
+      - name: Restore NuGet packages
         run: nuget restore BlackNotepad.sln
 
-      - name: Build
-        run: msbuild BlackNotepad.sln /p:Configuration=Release /p:Platform="Any CPU"
+      - name: Build Release
+        run: msbuild BlackNotepad.sln /p:Configuration=Release /p:Platform="Any CPU" /p:SignManifests=false
 
-      - name: Upload build artifact
+      - name: Publish portable zip
+        run: Compress-Archive -Path src/bin/Release/* -DestinationPath BlackNotepad-Portable.zip
+
+      - name: Upload portable zip
         uses: actions/upload-artifact@v4
         with:
-          name: BlackNotepad
-          path: src/bin/Release/
+          name: BlackNotepad-Portable
+          path: BlackNotepad-Portable.zip
 
   release:
     needs: build
@@ -37,27 +41,12 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/v')
 
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup MSBuild
-        uses: microsoft/setup-msbuild@v2
-
-      - name: Setup NuGet
-        uses: NuGet/setup-nuget@v2
-
-      - name: Restore packages
-        run: nuget restore BlackNotepad.sln
-
-      - name: Build Release
-        run: msbuild BlackNotepad.sln /p:Configuration=Release /p:Platform="Any CPU"
-
-      - name: Create portable zip
-        run: |
-          Compress-Archive -Path src/bin/Release/* -DestinationPath BlackNotepad-Portable.zip
+      - uses: actions/download-artifact@v4
+        with:
+          name: BlackNotepad-Portable
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: |
-            BlackNotepad-Portable.zip
+          files: BlackNotepad-Portable.zip
           generate_release_notes: true
