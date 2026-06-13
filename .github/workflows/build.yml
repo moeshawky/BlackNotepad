@@ -15,7 +15,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Setup MSBuild
-        uses: microsoft/setup-msbuild@v2
+        uses: microsoft/setup-msbuild@v1.1
 
       - name: Setup NuGet
         uses: nuget/setup-nuget@v2
@@ -26,14 +26,17 @@ jobs:
       - name: Build Release
         run: msbuild BlackNotepad.sln /p:Configuration=Release /p:Platform="Any CPU" /p:SignManifests=false
 
-      - name: Publish portable zip
-        run: Compress-Archive -Path src/bin/Release/* -DestinationPath BlackNotepad-Portable.zip
+      - name: Install Inno Setup
+        run: choco install innosetup --no-progress -y
 
-      - name: Upload portable zip
+      - name: Build installer
+        run: iscc setup.iss
+
+      - name: Upload installer
         uses: actions/upload-artifact@v4
         with:
-          name: BlackNotepad-Portable
-          path: BlackNotepad-Portable.zip
+          name: BlackNotepad-Setup
+          path: BlackNotepad-Setup-*.exe
 
   release:
     needs: build
@@ -43,10 +46,10 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: BlackNotepad-Portable
+          name: BlackNotepad-Setup
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: BlackNotepad-Portable.zip
+          files: BlackNotepad-Setup-*.exe
           generate_release_notes: true
