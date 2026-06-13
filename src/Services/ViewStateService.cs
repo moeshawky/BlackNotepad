@@ -39,14 +39,28 @@ namespace Savaged.BlackNotepad.Services
                 $"{localAppData}\\BlackNotepad.ViewState.json";
         }
 
+        /// <summary>
+        /// Loads the persisted view state from the JSON file on disk.
+        /// If the file is missing, corrupt, or contains null fields,
+        /// returns a ViewStateModel initialized with service defaults.
+        /// </summary>
+        /// <returns>A non-null ViewStateModel with all properties populated.
+        /// Never returns null or a model with null font properties.</returns>
         public ViewStateModel Open()
         {
             ViewStateModel value;
             var fileInfo = new FileInfo(_fileLocation);
             if (fileInfo.Exists)
             {
-                value = JsonConvert.DeserializeObject<ViewStateModel>(
-                    File.ReadAllText(_fileLocation));
+                try
+                {
+                    value = JsonConvert.DeserializeObject<ViewStateModel>(
+                        File.ReadAllText(_fileLocation));
+                }
+                catch (JsonException)
+                {
+                    value = null;
+                }
             }
             else
             {
@@ -54,6 +68,33 @@ namespace Savaged.BlackNotepad.Services
                     _fontColourLookupService.GetDefault(),
                     _fontFamilyLookupService.GetDefault(),
                     _fontZoomLookupService.GetDefault());
+            }
+            if (value is null)
+            {
+                value = new ViewStateModel(
+                    _fontColourLookupService.GetDefault(),
+                    _fontFamilyLookupService.GetDefault(),
+                    _fontZoomLookupService.GetDefault());
+                return value;
+            }
+            if (value.SelectedFontZoom is null)
+            {
+                value.SelectedFontZoom = new FontZoomModel
+                    { IsSelected = true };
+            }
+            if (value.SelectedFontColour is null)
+            {
+                value.SelectedFontColour = new FontColourModel
+                    { IsSelected = true };
+            }
+            if (value.SelectedFontFamily is null)
+            {
+                value.SelectedFontFamily = new FontFamilyModel
+                    { IsSelected = true };
+            }
+            if (!Enum.IsDefined(typeof(ThemeMode), value.SelectedThemeMode))
+            {
+                value.SelectedThemeMode = ThemeMode.Dark;
             }
             return value;
         }
