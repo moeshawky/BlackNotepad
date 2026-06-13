@@ -352,3 +352,17 @@ ASALocalRun/
 # BeatPulse healthcheck temp database
 healthchecksdb
 /scratchpad.cs
+
+# Upstream snapshot — do not track
+BlackNotepad-master/
+
+# Internal audit reports — do not publish
+MAAT_REPORT.md
+PRE_PUBLISH_AUDIT.md
+
+# Distribution artifacts — built fresh for releases
+Distribution/
+
+# Jules patch files
+.jules/
+.jules_compare/
