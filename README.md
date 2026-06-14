@@ -7,7 +7,7 @@
 **Fork Notice:** This is a community-maintained fork of [savaged/BlackNotepad](https://github.com/savaged/BlackNotepad) (upstream archived since 2024). Issues and releases are handled here.
 
 [![License: GPL v2](https://img.shields.io/badge/License-GPLv2-blue.svg)](LICENSE)
-[![.NET Framework](https://img.shields.io/badge/.NET-4.8-yellow.svg)](https://dotnet.microsoft.com/download/dotnet-framework/net48)
+[![.NET Framework](https://img.shields.io/badge/.NET-4.7.2-yellow.svg)](https://dotnet.microsoft.com/download/dotnet-framework/net472)
 [![Status](https://img.shields.io/badge/status-active-brightgreen)]()
 
 ---
@@ -68,7 +68,7 @@ Right-click any .txt file → Open With → Choose another app
 | Requirement | Version | Notes |
 |:------------|:--------|:------|
 | Windows | 10 or 11 | Required for WPF |
-| .NET Framework | 4.8 or later | [Download](https://dotnet.microsoft.com/download/dotnet-framework/net48) |
+| .NET Framework | 4.7.2 or later | [Download](https://dotnet.microsoft.com/download/dotnet-framework/net472) |
 | Visual Studio Build Tools | 2022 | Includes MSBuild |
 
 ### Build Commands
@@ -78,7 +78,7 @@ Right-click any .txt file → Open With → Choose another app
 cd BlackNotepad-master
 
 # Build Release
-msbuild src\BlackNotepad.csproj /p:Configuration=Release /p:TargetFrameworkVersion=v4.8
+msbuild src\BlackNotepad.csproj /p:Configuration=Release /p:TargetFrameworkVersion=v4.7.2
 
 # Output: src\bin\Release\BlackNotepad.exe
 ```
