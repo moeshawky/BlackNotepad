@@ -25,7 +25,7 @@ namespace Savaged.BlackNotepad.Views
             {
                 var uri = new Uri(
                     "pack://application:,,,/logo.ico", UriKind.Absolute);
-                Icon = new System.Windows.Media.Imaging.BitmapFrame.Create(uri);
+                Icon = System.Windows.Media.Imaging.BitmapFrame.Create(uri);
             }
             catch (Exception)
             {
