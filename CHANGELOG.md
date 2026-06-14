@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.1.1] - 2026-06-14
+
+### Fixed
+- Taskbar icon now shows BlackNotepad icon (Window.Icon was never set)
+- Theme switching broken: CommandParameter passed string but RelayCommand expected ThemeMode enum, silently failing
+- Installer version synced to 1.1.0 (was stuck at 1.0.10)
+
 ## [1.1.0] - 2026-06-14
 
 ### Added
