@@ -1104,7 +1104,7 @@ namespace Savaged.BlackNotepad.ViewModels
                 // Intentionally silent: not running as ClickOnce deployment,
                 // fallback to assembly version is correct behavior.
                 productVersion = Assembly.GetExecutingAssembly().GetName()
-                    .Version.ToString();
+                    .Version.ToString(3);
             }
             _dialogService.ShowDialog(
                 "A black 'version' of the classic Microsoft Windows " +

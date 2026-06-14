@@ -199,9 +199,9 @@
             </StatusBar.ItemsPanel>
             <StatusBarItem Grid.Column="0">
                 <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="Busy..." 
+                    <TextBlock Text="Busy..."
                                Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibilityConverter}}"/>
-                    <TextBlock Text="Auto-save failed" 
+                    <TextBlock Text="Auto-save failed"
                                Foreground="Orange"
                                Visibility="{Binding IsAutoSaveFailed, Converter={StaticResource BoolToVisibilityConverter}}"/>
                 </StackPanel>
