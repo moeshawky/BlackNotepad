@@ -5,6 +5,7 @@ using Savaged.BlackNotepad.ViewModels;
 using Savaged.BlackNotepad.Views;
 using System;
 using System.Windows;
+using System.Windows.Threading;
 
 namespace Savaged.BlackNotepad
 {
