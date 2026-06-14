@@ -56,7 +56,7 @@ namespace Savaged.BlackNotepad.Services
             where T : IDialogViewModel
         {
             var value = SimpleIoc.Default.GetInstance<T>();
-            if (value is null)
+            if (value == null)
             {
                 throw new InvalidOperationException(
                     $"No ViewModel of type '{typeof(T).Name}' is registered in SimpleIoc. " +
@@ -75,7 +75,7 @@ namespace Savaged.BlackNotepad.Services
         public T GetFileDialog<T>() where T : FileDialog
         {
             var value = SimpleIoc.Default.GetInstance<T>();
-            if (value is null)
+            if (value == null)
             {
                 throw new InvalidOperationException(
                     $"No FileDialog of type '{typeof(T).Name}' is registered in SimpleIoc. " +
