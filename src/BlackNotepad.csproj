@@ -29,9 +29,9 @@
     <SupportUrl>https://savaged.github.io/BlackNotepad/</SupportUrl>
     <ProductName>BlackNotepad</ProductName>
     <PublisherName>savaged</PublisherName>
-    <MinimumRequiredVersion>1.0.11.0</MinimumRequiredVersion>
+    <MinimumRequiredVersion>1.1.0.0</MinimumRequiredVersion>
     <ApplicationRevision>0</ApplicationRevision>
-    <ApplicationVersion>1.0.11.%2a</ApplicationVersion>
+    <ApplicationVersion>1.1.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>
     <BootstrapperEnabled>true</BootstrapperEnabled>

@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-## [1.0.11] - 2026-06-14
+## [1.1.0] - 2026-06-14
 
 ### Added
 - Line numbers toggle in View menu
