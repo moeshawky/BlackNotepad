@@ -29,9 +29,9 @@
     <SupportUrl>https://savaged.github.io/BlackNotepad/</SupportUrl>
     <ProductName>BlackNotepad</ProductName>
     <PublisherName>savaged</PublisherName>
-    <MinimumRequiredVersion>1.0.9.0</MinimumRequiredVersion>
+    <MinimumRequiredVersion>1.0.11.0</MinimumRequiredVersion>
     <ApplicationRevision>0</ApplicationRevision>
-    <ApplicationVersion>1.0.9.%2a</ApplicationVersion>
+    <ApplicationVersion>1.0.11.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>
     <BootstrapperEnabled>true</BootstrapperEnabled>
@@ -187,7 +187,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="ViewModels\ReplaceDialogViewModel.cs" />
-    <Compile Include="ViewsInterfaces\IModalDialog.cs" />
     <Compile Include="Views\Controls\CancelButtonControl.xaml.cs">
       <DependentUpon>CancelButtonControl.xaml</DependentUpon>
     </Compile>

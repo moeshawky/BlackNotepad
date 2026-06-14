@@ -1,5 +1,6 @@
 ﻿using Savaged.BlackNotepad.Lookups;
 using Savaged.BlackNotepad.Models;
+using System;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -28,10 +29,42 @@ namespace Savaged.BlackNotepad.Services
             await Task.Run(() => SaveFile(fileModel));
         }
 
+        /// <summary>
+        /// Writes file content atomically using write-to-temp-then-replace pattern.
+        /// Writes to a .tmp file first, then replaces the original. This prevents
+        /// data loss on power failure or crash during write — the original file
+        /// remains intact until the temp file is fully written.
+        /// </summary>
+        /// <param name="fileModel">The file model containing Location and Content to save.</param>
         private void SaveFile(FileModel fileModel)
         {
-            File.WriteAllText(fileModel.Location, fileModel.Content);
-            fileModel.IsDirty = false;
+            var tmpPath = fileModel.Location + ".tmp";
+            var backupPath = fileModel.Location + ".bak";
+
+            try
+            {
+                File.WriteAllText(tmpPath, fileModel.Content);
+
+                if (File.Exists(fileModel.Location))
+                {
+                    File.Replace(tmpPath, fileModel.Location, backupPath);
+                    File.Delete(backupPath);
+                }
+                else
+                {
+                    File.Move(tmpPath, fileModel.Location);
+                }
+
+                fileModel.IsDirty = false;
+            }
+            catch (Exception)
+            {
+                if (File.Exists(tmpPath))
+                {
+                    try { File.Delete(tmpPath); } catch { }
+                }
+                throw;
+            }
         }
 
         private void ReadFile(FileModel fileModel)

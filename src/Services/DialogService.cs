@@ -45,16 +45,42 @@ namespace Savaged.BlackNotepad.Services
             }
         }
 
+        /// <summary>
+        /// Resolves a dialog ViewModel instance from the MvvmLight SimpleIoc container.
+        /// Throws if the requested type is not registered or resolves to null.
+        /// </summary>
+        /// <typeparam name="T">The dialog ViewModel interface type to resolve.</typeparam>
+        /// <returns>The registered ViewModel instance.</returns>
+        /// <exception cref="InvalidOperationException">Thrown when the requested ViewModel type is not registered in SimpleIoc.</exception>
         public T GetDialogViewModel<T>() 
             where T : IDialogViewModel
         {
             var value = SimpleIoc.Default.GetInstance<T>();
+            if (value is null)
+            {
+                throw new InvalidOperationException(
+                    $"No ViewModel of type '{typeof(T).Name}' is registered in SimpleIoc. " +
+                    "Ensure the ViewModel is registered before calling GetDialogViewModel.");
+            }
             return value;
         }
 
+        /// <summary>
+        /// Resolves a file dialog instance from the MvvmLight SimpleIoc container.
+        /// Throws if the requested type is not registered or resolves to null.
+        /// </summary>
+        /// <typeparam name="T">The FileDialog-derived type to resolve (e.g., OpenFileDialog, SaveFileDialog).</typeparam>
+        /// <returns>The registered FileDialog instance.</returns>
+        /// <exception cref="InvalidOperationException">Thrown when the requested FileDialog type is not registered in SimpleIoc.</exception>
         public T GetFileDialog<T>() where T : FileDialog
         {
             var value = SimpleIoc.Default.GetInstance<T>();
+            if (value is null)
+            {
+                throw new InvalidOperationException(
+                    $"No FileDialog of type '{typeof(T).Name}' is registered in SimpleIoc. " +
+                    "Ensure the FileDialog is registered before calling GetFileDialog.");
+            }
             return value;
         }
 
@@ -124,6 +150,8 @@ namespace Savaged.BlackNotepad.Services
                 .Substring(0, vmName.IndexOf("ViewModel"));
 
             var value = GetDialog(dialogName);
+            // Defensive guard: GetDialog(string) now throws, but null-check retained
+            // as safety net in case reflection returns an unexpected null.
             if (value is null)
             {
                 throw new InvalidOperationException(
@@ -151,7 +179,8 @@ namespace Savaged.BlackNotepad.Services
         /// Searches for types whose base type is Dialog or whose grandparent type is Dialog.
         /// </summary>
         /// <param name="dialogName">The short name of the Dialog type to locate (without "ViewModel" suffix).</param>
-        /// <returns>The instantiated Dialog, or null if no matching type was found.</returns>
+        /// <returns>The instantiated Dialog with DataContext set.</returns>
+        /// <exception cref="InvalidOperationException">Thrown when no Dialog type matches the given name — this is a programming error, not a runtime condition.</exception>
         private Dialog GetDialog(string dialogName)
         {
             Dialog value = null;
@@ -166,6 +195,12 @@ namespace Savaged.BlackNotepad.Services
                         break;
                     }
                 }
+            }
+            if (value is null)
+            {
+                throw new InvalidOperationException(
+                    $"No Dialog type found matching '{dialogName}'. " +
+                    "Ensure a Dialog-derived class with this name exists in the entry assembly.");
             }
             return value;
         }

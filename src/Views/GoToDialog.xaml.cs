@@ -1,9 +1,8 @@
-﻿using Savaged.BlackNotepad.ViewsInterfaces;
-using System.Windows;
+﻿using System.Windows;
 
 namespace Savaged.BlackNotepad.Views
 {
-    public partial class GoToDialog : Dialog, IModalDialog
+    public partial class GoToDialog : Dialog
     {
         public GoToDialog()
         {

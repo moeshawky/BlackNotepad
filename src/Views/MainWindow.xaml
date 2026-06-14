@@ -198,8 +198,13 @@
                 </ItemsPanelTemplate>
             </StatusBar.ItemsPanel>
             <StatusBarItem Grid.Column="0">
-                <TextBlock Text="Busy..." 
-                           Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="Busy..." 
+                               Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                    <TextBlock Text="Auto-save failed" 
+                               Foreground="Orange"
+                               Visibility="{Binding IsAutoSaveFailed, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                </StackPanel>
             </StatusBarItem>
             <StatusBarItem Grid.Column="1">
                 <TextBlock Text="{Binding WordCount, StringFormat='Words: {0}'}"/>

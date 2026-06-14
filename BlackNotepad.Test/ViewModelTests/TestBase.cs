@@ -58,10 +58,10 @@ namespace BlackNotepad.Test.ViewModelTests
             MockDialogService = new Mock<IDialogService>();
             MockDialogService.Setup(
                 s => s.GetFileDialog<OpenFileDialog>())
-                .Returns(It.IsAny<OpenFileDialog>());
+                .Returns(new Microsoft.Win32.OpenFileDialog());
             MockDialogService.Setup(
                 s => s.GetFileDialog<SaveFileDialog>())
-                .Returns(It.IsAny<SaveFileDialog>());
+                .Returns(new Microsoft.Win32.SaveFileDialog());
 
 
             var mockGoToVm = new Mock<IGoToDialogViewModel>();

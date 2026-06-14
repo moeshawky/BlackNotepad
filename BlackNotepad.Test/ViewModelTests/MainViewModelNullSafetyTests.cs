@@ -2,6 +2,8 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Savaged.BlackNotepad.Models;
 using Savaged.BlackNotepad.Services;
+using Savaged.BlackNotepad.ViewModels;
+using Savaged.BlackNotepad.ViewsInterfaces;
 using System;
 using System.Collections.Generic;
 
@@ -10,22 +12,32 @@ namespace BlackNotepad.Test.ViewModelTests
     [TestClass]
     public class MainViewModelNullSafetyTests : TestBase
     {
+        private IFontColourLookupService _fontColourLookup;
+        private IFontFamilyLookupService _fontFamilyLookup;
+        private IFontZoomLookupService _fontZoomLookup;
+
+        [TestInitialize]
+        public void NullSafetyInit()
+        {
+            _fontColourLookup = new FontColourLookupService();
+            _fontFamilyLookup = new FontFamilyLookupService();
+            _fontZoomLookup = new FontZoomLookupService();
+        }
+
         [TestMethod]
         public void OnZoomIn_WithNullSelectedFontZoom_DoesNotThrow()
         {
-            // Arrange: Create ViewState with null SelectedFontZoom
             var viewStateWithNull = new ViewStateModel(
                 _fontColourLookup.GetDefault(),
                 _fontFamilyLookup.GetDefault(),
                 _fontZoomLookup.GetDefault());
-            viewStateWithNull.SelectedFontZoom = null; // Simulate corrupt state
+            viewStateWithNull.SelectedFontZoom = null;
 
             var mockViewStateService = new Mock<IViewStateService>();
             mockViewStateService.Setup(s => s.Open()).Returns(viewStateWithNull);
 
             var vm = CreateMainViewModel(viewStateService: mockViewStateService.Object);
 
-            // Act & Assert: Should not throw NullReferenceException
             try
             {
                 vm.ZoomInCmd.Execute(null);
@@ -39,7 +51,6 @@ namespace BlackNotepad.Test.ViewModelTests
         [TestMethod]
         public void OnZoomOut_WithNullSelectedFontZoom_DoesNotThrow()
         {
-            // Arrange: Create ViewState with null SelectedFontZoom
             var viewStateWithNull = new ViewStateModel(
                 _fontColourLookup.GetDefault(),
                 _fontFamilyLookup.GetDefault(),
@@ -51,7 +62,6 @@ namespace BlackNotepad.Test.ViewModelTests
 
             var vm = CreateMainViewModel(viewStateService: mockViewStateService.Object);
 
-            // Act & Assert: Should not throw NullReferenceException
             try
             {
                 vm.ZoomOutCmd.Execute(null);
@@ -70,7 +80,7 @@ namespace BlackNotepad.Test.ViewModelTests
 
             vm.ZoomInCmd.Execute(null);
 
-            Assert.AreNotEqual(initialZoom, vm.ViewState.SelectedFontZoom.Key, 
+            Assert.AreNotEqual(initialZoom, vm.ViewState.SelectedFontZoom.Key,
                 "Zoom level should change after ZoomIn");
         }
 
@@ -78,7 +88,6 @@ namespace BlackNotepad.Test.ViewModelTests
         public void OnZoomOut_WithValidState_ChangesZoomLevel()
         {
             var vm = CreateMainViewModel();
-            // First zoom in so we can zoom out
             vm.ZoomInCmd.Execute(null);
             var zoomedIn = vm.ViewState.SelectedFontZoom.Key;
 
@@ -105,14 +114,13 @@ namespace BlackNotepad.Test.ViewModelTests
             vm.RestoreDefaultZoomCmd.Execute(null);
 
             Assert.IsNotNull(vm.ViewState.SelectedFontZoom);
-            Assert.AreEqual(vm.ViewState.SelectedFontZoom.Key, 100, // default zoom
+            Assert.AreEqual(vm.ViewState.SelectedFontZoom.Key, 100,
                 "Default zoom should be 100");
         }
 
         [TestMethod]
         public void ViewState_AlwaysHasNonNullFontZoom_AfterConstruction()
         {
-            // This tests that the AP fix in ViewStateService guarantees non-null
             Assert.IsNotNull(MainVm.ViewState.SelectedFontZoom);
             Assert.IsNotNull(MainVm.ViewState.SelectedFontColour);
             Assert.IsNotNull(MainVm.ViewState.SelectedFontFamily);
@@ -124,17 +132,21 @@ namespace BlackNotepad.Test.ViewModelTests
             IDialogService dialogService = null,
             IThemeService themeService = null)
         {
-            var vsService = viewStateService ?? new Mock<IViewStateService>().Object;
-            var fmService = fileModelService ?? new Mock<IFileModelService>().Object;
-            var dlgService = dialogService ?? new Mock<IDialogService>().Object;
-            var thService = themeService ?? new Mock<IThemeService>().Object;
-
-            var mockVsService = new Mock<IViewStateService>();
-            mockVsService.Setup(s => s.Open())
-                .Returns(new ViewStateModel(
-                    _fontColourLookup.GetDefault(),
-                    _fontFamilyLookup.GetDefault(),
-                    _fontZoomLookup.GetDefault()));
+            IViewStateService vsService;
+            if (viewStateService != null)
+            {
+                vsService = viewStateService;
+            }
+            else
+            {
+                var mockVs = new Mock<IViewStateService>();
+                mockVs.Setup(s => s.Open())
+                    .Returns(new ViewStateModel(
+                        _fontColourLookup.GetDefault(),
+                        _fontFamilyLookup.GetDefault(),
+                        _fontZoomLookup.GetDefault()));
+                vsService = mockVs.Object;
+            }
 
             var mockFmService = new Mock<IFileModelService>();
             mockFmService.Setup(s => s.LoadAsync(It.IsAny<string>()))
@@ -144,25 +156,33 @@ namespace BlackNotepad.Test.ViewModelTests
 
             var mockDlgService = new Mock<IDialogService>();
             mockDlgService.Setup(s => s.GetFileDialog<OpenFileDialog>())
-                .Returns(It.IsAny<OpenFileDialog>());
+                .Returns(new Microsoft.Win32.OpenFileDialog());
             mockDlgService.Setup(s => s.GetFileDialog<SaveFileDialog>())
-                .Returns(It.IsAny<SaveFileDialog>());
+                .Returns(new Microsoft.Win32.SaveFileDialog());
             mockDlgService.Setup(s => s.GetDialogViewModel<IGoToDialogViewModel>())
                 .Returns(new Mock<IGoToDialogViewModel>().Object);
             mockDlgService.Setup(s => s.GetDialogViewModel<IFindDialogViewModel>())
                 .Returns(new FindDialogViewModel());
             mockDlgService.Setup(s => s.GetDialogViewModel<IReplaceDialogViewModel>())
                 .Returns(new ReplaceDialogViewModel());
-            mockDlgService.Setup(s => s.ShowDialog(It.IsAny<object>())).Returns(true);
+            mockDlgService.Setup(s => s.ShowDialog(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<bool>()))
+                .Returns((bool?)true);
+            mockDlgService.Setup(s => s.Show(It.IsAny<IDialogViewModel>()));
+            mockDlgService.Setup(s => s.ShowDialog(It.IsAny<IDialogViewModel>()))
+                .Returns(true);
+
+            var dlgService = dialogService ?? mockDlgService.Object;
+            var thService = themeService ?? new Mock<IThemeService>().Object;
+            var fmService = fileModelService ?? mockFmService.Object;
 
             return new MainViewModel(
-                mockDlgService.Object,
-                mockVsService.Object,
+                dlgService,
+                vsService,
                 thService,
                 _fontColourLookup,
                 _fontFamilyLookup,
                 _fontZoomLookup,
-                mockFmService.Object);
+                fmService);
         }
     }
 }

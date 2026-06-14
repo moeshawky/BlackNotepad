@@ -49,6 +49,7 @@ namespace Savaged.BlackNotepad.ViewModels
         private bool _isFindWrapAround;
         private bool _isFindMatchCase;
         private bool _isReadyForReplacement;
+        private bool _isAutoSaveFailed;
 
         public MainViewModel(
             IDialogService dialogService,
@@ -92,16 +93,10 @@ namespace Savaged.BlackNotepad.ViewModels
 
             const string filter = "Text Documents|*.txt|All files (*.*)|*.*";
             _openFileDialog = _dialogService.GetFileDialog<OpenFileDialog>();
-            if (_openFileDialog != null)
-            {
-                _openFileDialog.Filter = filter;
-            }
+            _openFileDialog.Filter = filter;
 
             _saveFileDialog = _dialogService.GetFileDialog<SaveFileDialog>();
-            if (_saveFileDialog != null)
-            {
-                _saveFileDialog.Filter = filter;
-            }
+            _saveFileDialog.Filter = filter;
 
             _viewStateService = viewStateService;
             ViewState = _viewStateService.Open();
@@ -170,26 +165,20 @@ namespace Savaged.BlackNotepad.ViewModels
 
             _findDialog = _dialogService
                 .GetDialogViewModel<IFindDialogViewModel>();
-            if (_findDialog != null)
-            {
-                _findDialog.FindNextRaisedByDialog +=
-                    OnFindNextRaisedByDialog;
-                _findDialog.ReplaceCmd = ReplaceCmd;
-                _findDialog.GoToCmd = GoToCmd;
-                _findDialog.PropertyChanged += OnFindDialogPropertyChanged;
-            }           
+            _findDialog.FindNextRaisedByDialog +=
+                OnFindNextRaisedByDialog;
+            _findDialog.ReplaceCmd = ReplaceCmd;
+            _findDialog.GoToCmd = GoToCmd;
+            _findDialog.PropertyChanged += OnFindDialogPropertyChanged;
 
             _replaceDialog = _dialogService
                 .GetDialogViewModel<IReplaceDialogViewModel>();
-            if (_replaceDialog != null)
-            {
-                _replaceDialog.FindNextRaisedByDialog += OnFindNextRaisedByDialog;
-                _replaceDialog.ReplaceRaisedByDialog += OnReplaceRaisedByDialog;
-                _replaceDialog.ReplaceAllRaisedByDialog += OnReplaceAllRaisedByDialog;
-                _replaceDialog.FindCmd = FindCmd;
-                _replaceDialog.GoToCmd = GoToCmd;
-                _replaceDialog.PropertyChanged += OnFindDialogPropertyChanged;
-            }
+            _replaceDialog.FindNextRaisedByDialog += OnFindNextRaisedByDialog;
+            _replaceDialog.ReplaceRaisedByDialog += OnReplaceRaisedByDialog;
+            _replaceDialog.ReplaceAllRaisedByDialog += OnReplaceAllRaisedByDialog;
+            _replaceDialog.FindCmd = FindCmd;
+            _replaceDialog.GoToCmd = GoToCmd;
+            _replaceDialog.PropertyChanged += OnFindDialogPropertyChanged;
         }
 
         public async Task<bool> OnClosing()
@@ -224,14 +213,23 @@ namespace Savaged.BlackNotepad.ViewModels
             catch (System.IO.FileNotFoundException)
             {
                 System.Diagnostics.Debug.WriteLine($"File not found: {location}");
+                _dialogService.ShowDialog(
+                    $"File not found: {location}",
+                    "Black Notepad");
             }
             catch (System.IO.IOException ex)
             {
                 System.Diagnostics.Debug.WriteLine($"IO error loading file: {ex.Message}");
+                _dialogService.ShowDialog(
+                    $"Could not open file — IO error: {ex.Message}",
+                    "Black Notepad");
             }
             catch (UnauthorizedAccessException)
             {
                 System.Diagnostics.Debug.WriteLine($"Access denied: {location}");
+                _dialogService.ShowDialog(
+                    $"Access denied: {location}",
+                    "Black Notepad");
             }
             finally
             {
@@ -426,6 +424,18 @@ namespace Savaged.BlackNotepad.ViewModels
         public bool IsSelectAllEnabled => !IsBusy &&
             SelectedItem.HasContent;
 
+        /// <summary>
+        /// Indicates that the most recent auto-save attempt failed.
+        /// Reset to false on the next successful save. Bind in the StatusBar
+        /// to display a warning indicator when auto-save is silently failing.
+        /// </summary>
+        /// <value>True if auto-save has failed since the last successful save; false otherwise.</value>
+        public bool IsAutoSaveFailed
+        {
+            get => _isAutoSaveFailed;
+            set => Set(ref _isAutoSaveFailed, value);
+        }
+
         public Action<int, int, int> GoToRequested = delegate { };
 
         public Action FocusRequested = delegate { };
@@ -458,6 +468,10 @@ namespace Savaged.BlackNotepad.ViewModels
             RaisePropertyChanged(nameof(IsBusy));
         }
 
+        // MAAT-STRUCTURE-23: Candidate for extraction to FileOperationsViewModel.
+        // Structural debt documented; extraction deferred due to build-verification constraints.
+        #region File Operations
+
         private async void OnNew()
         {
             try
@@ -467,6 +481,9 @@ namespace Savaged.BlackNotepad.ViewModels
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"New failed: {ex.Message}");
+                _dialogService.ShowDialog(
+                    $"Failed to create new document: {ex.Message}",
+                    "Black Notepad");
             }
         }
 
@@ -507,6 +524,9 @@ namespace Savaged.BlackNotepad.ViewModels
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Open failed: {ex.Message}");
+                _dialogService.ShowDialog(
+                    $"Failed to open file: {ex.Message}",
+                    "Black Notepad");
             }
         }
 
@@ -546,14 +566,21 @@ namespace Savaged.BlackNotepad.ViewModels
                 {
                     await _fileModelService.SaveAsync(SelectedItem);
                     RaisePropertyChanged(nameof(Title));
+                    IsAutoSaveFailed = false;
                 }
                 catch (System.IO.IOException ex)
                 {
                     System.Diagnostics.Debug.WriteLine($"IO error saving file: {ex.Message}");
+                    _dialogService.ShowDialog(
+                        $"Could not save file — IO error: {ex.Message}",
+                        "Black Notepad");
                 }
                 catch (UnauthorizedAccessException)
                 {
                     System.Diagnostics.Debug.WriteLine($"Access denied saving file: {SelectedItem.Location}");
+                    _dialogService.ShowDialog(
+                        $"Access denied saving file: {SelectedItem.Location}",
+                        "Black Notepad");
                 }
                 finally
                 {
@@ -575,6 +602,9 @@ namespace Savaged.BlackNotepad.ViewModels
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"SaveAs failed: {ex.Message}");
+                _dialogService.ShowDialog(
+                    $"Failed to save file: {ex.Message}",
+                    "Black Notepad");
             }
         }
         private async Task SaveAsAsync()
@@ -593,8 +623,18 @@ namespace Savaged.BlackNotepad.ViewModels
             Application.Current.Shutdown();
         }
 
+        #endregion
+
+        // MAAT-STRUCTURE-23: Candidate for extraction to FindReplaceViewModel.
+        // Structural debt documented; extraction deferred due to build-verification constraints.
+        #region Find/Replace Operations
+
         private void OnFind()
         {
+            if (_findDialog is null)
+            {
+                return;
+            }
             if (SelectedText != null)
             {
                 _findDialog.TextSought = SelectedText;
@@ -724,6 +764,10 @@ namespace Savaged.BlackNotepad.ViewModels
 
         private void OnReplace()
         {
+            if (_replaceDialog is null)
+            {
+                return;
+            }
             if (SelectedText != null)
             {
                 _replaceDialog.TextSought = SelectedText;
@@ -850,10 +894,16 @@ namespace Savaged.BlackNotepad.ViewModels
             return true;
         }
 
+        #endregion
+
         private void OnGoTo()
         {
             var vm = _dialogService
                 .GetDialogViewModel<IGoToDialogViewModel>();
+            if (vm is null)
+            {
+                return;
+            }
             vm.LineNumber = CaretLine;
             var result = _dialogService.ShowDialog(vm);
             if (result == true)
@@ -932,6 +982,10 @@ namespace Savaged.BlackNotepad.ViewModels
             ViewState.IsWrapped = !ViewState.IsWrapped;
         }
 
+        // MAAT-STRUCTURE-23: Candidate for extraction to ZoomViewModel.
+        // Structural debt documented; extraction deferred due to build-verification constraints.
+        #region Zoom Operations
+
         /// <summary>
         /// Ctrl+Plus
         /// </summary>
@@ -941,6 +995,7 @@ namespace Savaged.BlackNotepad.ViewModels
             if (current is null)
             {
                 RestoreDefaultZoom();
+                return;
             }
             FontZoomModel value = null;
             var isCurrentFound = false;
@@ -973,6 +1028,7 @@ namespace Savaged.BlackNotepad.ViewModels
             if (current is null)
             {
                 RestoreDefaultZoom();
+                return;
             }
             FontZoomModel value = null;
             foreach (var fontZoom in _fontZoomIndex)
@@ -1017,6 +1073,8 @@ namespace Savaged.BlackNotepad.ViewModels
             _isFontZoomMax = _isFontZoomMin = false;
         }
 
+        #endregion
+
         private void OnStatusBar()
         {
             ViewState.IsStatusBarVisible = !ViewState.IsStatusBarVisible;
@@ -1043,6 +1101,8 @@ namespace Savaged.BlackNotepad.ViewModels
             }
             catch (InvalidDeploymentException)
             {
+                // Intentionally silent: not running as ClickOnce deployment,
+                // fallback to assembly version is correct behavior.
                 productVersion = Assembly.GetExecutingAssembly().GetName()
                     .Version.ToString();
             }
@@ -1169,6 +1229,9 @@ namespace Savaged.BlackNotepad.ViewModels
             catch (JsonException)
             {
                 System.Diagnostics.Debug.WriteLine("Failed to prettify JSON: invalid JSON content");
+                _dialogService.ShowDialog(
+                    "The content is not valid JSON and cannot be prettified.",
+                    "Black Notepad");
             }
             finally
             {
@@ -1221,7 +1284,11 @@ namespace Savaged.BlackNotepad.ViewModels
                 }
                 catch (Exception ex)
                 {
+                    // Intentionally silent: auto-save is a background convenience — the user
+                    // will be notified via IsAutoSaveFailed binding on next manual save attempt.
+                    // Modal dialogs during auto-save would interrupt workflow.
                     System.Diagnostics.Debug.WriteLine($"Auto-save failed: {ex.Message}");
+                    IsAutoSaveFailed = true;
                 }
             }
         }
