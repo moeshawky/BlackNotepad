@@ -185,14 +185,13 @@ namespace BlackNotepad.Test.UnitTests
             var tempFile = Path.GetTempFileName();
             try
             {
-                var json = "{\"SelectedFontZoom\":{\"IsSelected\":true,\"Key\":150},\"SelectedFontColour\":{\"IsSelected\":true},\"SelectedFontFamily\":{\"IsSelected\":true},\"SelectedThemeMode\":1,\"IsWrapped\":true,\"IsStatusBarVisible\":true}";
+                var json = "{\"SelectedFontZoom\":{\"IsSelected\":true,\"Key\":150},\"SelectedFontColour\":{\"IsSelected\":true},\"SelectedFontFamily\":{\"IsSelected\":true},\"SelectedThemeMode\":1,\"IsWrapped\":true}";
                 File.WriteAllText(tempFile, json);
                 var service = CreateServiceWithFile(tempFile);
 
                 var result = service.Open();
 
                 Assert.IsTrue(result.IsWrapped);
-                Assert.IsTrue(result.IsStatusBarVisible);
                 Assert.AreEqual(150, result.SelectedFontZoom.Key);
                 Assert.AreEqual(ThemeMode.Light, result.SelectedThemeMode);
             }
@@ -226,7 +225,7 @@ namespace BlackNotepad.Test.UnitTests
         }
 
         [TestMethod]
-        public void Save_WritesAtomically_TempPlusRename()
+        public void Save_WritesJsonToFile()
         {
             var tempFile = Path.GetTempFileName();
             try
@@ -247,7 +246,6 @@ namespace BlackNotepad.Test.UnitTests
             finally
             {
                 File.Delete(tempFile);
-                File.Delete(tempFile + ".tmp");
             }
         }
 
@@ -264,7 +262,6 @@ namespace BlackNotepad.Test.UnitTests
                     _mockFamilyLookup.Object.GetDefault(),
                     _mockZoomLookup.Object.GetDefault());
                 state.IsWrapped = true;
-                state.IsStatusBarVisible = true;
                 state.SelectedThemeMode = ThemeMode.Light;
 
                 service.Save(state);
@@ -272,7 +269,6 @@ namespace BlackNotepad.Test.UnitTests
 
                 Assert.AreEqual(ThemeMode.Light, loaded.SelectedThemeMode);
                 Assert.IsTrue(loaded.IsWrapped);
-                Assert.IsTrue(loaded.IsStatusBarVisible);
             }
             finally
             {

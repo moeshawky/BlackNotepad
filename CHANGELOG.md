@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.1.3] - 2026-06-14
+
+### Fixed
+- IOException on close: `ViewStateService.Save` used `File.Move` which throws IOException when the destination file already exists on .NET Framework/Windows. Replaced with `File.WriteAllText` (direct overwrite, appropriate for small JSON settings file).
+- Added try-catch around `_viewStateService.Save()` in `OnClosing()` so a view-state save failure no longer crashes the app on exit.
+- Status bar and line numbers now default to OFF on every launch (Notepad-like behavior). Added `[JsonIgnore]` to `IsStatusBarVisible` and `IsLineNumbersVisible` so these per-session toggles are not persisted across sessions.
+- `_isLineNumbersVisible` field initializer changed from `true` to `false` (was incorrectly defaulting to ON).
+
 ## [1.1.2] - 2026-06-14
 
 ### Fixed

@@ -1,4 +1,5 @@
 ﻿using GalaSoft.MvvmLight;
+using Newtonsoft.Json;
 using System.Collections.ObjectModel;
 
 namespace Savaged.BlackNotepad.Models
@@ -12,7 +13,7 @@ namespace Savaged.BlackNotepad.Models
         private FontFamilyModel _selectedFontFamily = new FontFamilyModel { IsSelected = true };
         private bool _autoSaveEnabled = true;
         private ThemeMode _selectedThemeMode = ThemeMode.Dark;
-        private bool _isLineNumbersVisible = true;
+        private bool _isLineNumbersVisible;
 
         /// <summary>
         /// Parameterless constructor for JSON deserialization.
@@ -46,6 +47,7 @@ namespace Savaged.BlackNotepad.Models
             set => Set(ref _isWrapped, value);
         }
 
+        [JsonIgnore]
         public bool IsStatusBarVisible
         {
             get => _isStatusBarVisible;
@@ -111,6 +113,7 @@ namespace Savaged.BlackNotepad.Models
             set => Set(ref _selectedThemeMode, value);
         }
 
+        [JsonIgnore]
         public bool IsLineNumbersVisible
         {
             get => _isLineNumbersVisible;

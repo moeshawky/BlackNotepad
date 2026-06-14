@@ -184,7 +184,15 @@ namespace Savaged.BlackNotepad.ViewModels
         public async Task<bool> OnClosing()
         {
             _autoSaveTimer.Stop();
-            _viewStateService.Save(ViewState);
+            try
+            {
+                _viewStateService.Save(ViewState);
+            }
+            catch (System.IO.IOException ex)
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    $"Failed to save view state: {ex.Message}");
+            }
 
             var saveChanges = SaveChangesConfirmation();
             if (saveChanges == true)

@@ -2,7 +2,7 @@
 ; Produces: BlackNotepad-Setup.exe
 
 #define MyAppName "BlackNotepad"
-#define MyAppVersion "1.1.2"
+#define MyAppVersion "1.1.3"
 #define MyAppPublisher "moeshawky"
 #define MyAppURL "https://github.com/moeshawky/BlackNotepad"
 #define MyAppExeName "BlackNotepad.exe"

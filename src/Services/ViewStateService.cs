@@ -114,14 +114,17 @@ namespace Savaged.BlackNotepad.Services
             return value;
         }
 
+        /// <summary>
+        /// Persists the view state to a JSON file on disk.
+        /// Uses direct overwrite (File.WriteAllText) rather than write-to-temp-then-move,
+        /// because the JSON payload is small and File.Move throws IOException when the
+        /// destination file already exists on .NET Framework / Windows.
+        /// </summary>
+        /// <param name="viewState">The view state model to serialize and save.</param>
         public void Save(ViewStateModel viewState)
         {
             var json = JsonConvert.SerializeObject(viewState);
-
-            var tempLocation = _fileLocation + ".tmp";
-            File.WriteAllText(tempLocation, json);
-
-            File.Move(tempLocation, _fileLocation);
+            File.WriteAllText(_fileLocation, json);
         }
     }
 }

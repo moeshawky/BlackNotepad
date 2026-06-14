@@ -93,11 +93,11 @@ namespace BlackNotepad.Test.UnitTests
         }
 
         [TestMethod]
-        public void IsLineNumbersVisible_DefaultsToTrue()
+        public void IsLineNumbersVisible_DefaultsToFalse()
         {
             var model = new ViewStateModel();
 
-            Assert.IsTrue(model.IsLineNumbersVisible);
+            Assert.IsFalse(model.IsLineNumbersVisible);
         }
 
         [TestMethod]
