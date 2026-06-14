@@ -1107,9 +1107,10 @@ namespace Savaged.BlackNotepad.ViewModels
                     .Version.ToString(3);
             }
             _dialogService.ShowDialog(
-                "A black 'version' of the classic Microsoft Windows " +
-                $"Notepad application{Environment.NewLine}" +
-                $"{Environment.NewLine}BlackNotepad v{productVersion}", 
+                $"Community edition of BlackNotepad{Environment.NewLine}" +
+                $"Originally by savaged — continued by the community" +
+                $"{Environment.NewLine}{Environment.NewLine}" +
+                $"BlackNotepad v{productVersion}", 
                 "About");
         }
 
