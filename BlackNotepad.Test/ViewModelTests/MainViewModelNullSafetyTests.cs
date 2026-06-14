@@ -1,4 +1,5 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.Win32;
 using Moq;
 using Savaged.BlackNotepad.Models;
 using Savaged.BlackNotepad.Services;

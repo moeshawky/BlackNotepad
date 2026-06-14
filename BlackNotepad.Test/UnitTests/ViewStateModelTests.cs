@@ -1,5 +1,6 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Savaged.BlackNotepad.Models;
+using System;
 
 namespace BlackNotepad.Test.UnitTests
 {
