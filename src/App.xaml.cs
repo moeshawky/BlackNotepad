@@ -3,6 +3,7 @@ using Microsoft.Win32;
 using Savaged.BlackNotepad.Services;
 using Savaged.BlackNotepad.ViewModels;
 using Savaged.BlackNotepad.Views;
+using System;
 using System.Windows;
 
 namespace Savaged.BlackNotepad
@@ -48,6 +49,20 @@ namespace Savaged.BlackNotepad
                 .GetInstance<MainViewModel>()
             };
             mainView.Show();
+        }
+
+        private void OnDispatcherUnhandledException(
+            object sender, DispatcherUnhandledExceptionEventArgs e)
+        {
+            MessageBox.Show(
+                $"BlackNotepad encountered an unexpected error " +
+                $"and must close.\n\n{e.Exception.Message}\n\n" +
+                $"{e.Exception.GetType().Name}",
+                "BlackNotepad - Error",
+                MessageBoxButton.OK,
+                MessageBoxImage.Error);
+            e.Handled = true;
+            Shutdown();
         }
     }
 }

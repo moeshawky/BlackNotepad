@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.1.2] - 2026-06-14
+
+### Fixed
+- Silent crash on launch: removed `Icon` from XAML (XamlParseException if ICO malformed/not found), now set in code-behind with try-catch fallback
+- Added `DispatcherUnhandledException` handler so any unhandled exception shows an error dialog instead of silently killing the process
+
 ## [1.1.1] - 2026-06-14
 
 ### Fixed

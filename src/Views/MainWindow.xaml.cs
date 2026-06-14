@@ -20,6 +20,17 @@ namespace Savaged.BlackNotepad.Views
         {
             InitializeComponent();
             _themeService = themeService;
+
+            try
+            {
+                var uri = new Uri(
+                    "pack://application:,,,/logo.ico", UriKind.Absolute);
+                Icon = new System.Windows.Media.Imaging.BitmapFrame.Create(uri);
+            }
+            catch (Exception)
+            {
+            }
+
             _scrollSyncTimer = new DispatcherTimer
             {
                 Interval = System.TimeSpan.FromMilliseconds(100)
