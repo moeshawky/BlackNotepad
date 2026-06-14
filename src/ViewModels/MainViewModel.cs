@@ -149,7 +149,7 @@ namespace Savaged.BlackNotepad.ViewModels
             PrettifyJsonCmd = new RelayCommand(
                 OnPrettifyJson, () => CanExecutePrettifyJson);
             PrintPreviewCmd = new RelayCommand(OnPrintPreview, () => CanExecute);
-            ThemeModeCmd = new RelayCommand<ThemeMode>(
+            ThemeModeCmd = new RelayCommand<string>(
                 OnThemeMode, (m) => CanExecute);
             LineNumbersCmd = new RelayCommand(OnLineNumbers, () => CanExecute);
 
@@ -339,7 +339,7 @@ namespace Savaged.BlackNotepad.ViewModels
         public RelayCommand<FontFamilyModel> FontFamilyCmd { get; }
         public RelayCommand PrettifyJsonCmd { get; }
         public RelayCommand PrintPreviewCmd { get; }
-        public RelayCommand<ThemeMode> ThemeModeCmd { get; }
+        public RelayCommand<string> ThemeModeCmd { get; }
         public RelayCommand LineNumbersCmd { get; }
 
         /// <summary>
@@ -1120,10 +1120,13 @@ namespace Savaged.BlackNotepad.ViewModels
             ApplySelectedOnFontColour();
         }
 
-        private void OnThemeMode(ThemeMode mode)
+        private void OnThemeMode(string modeName)
         {
-            ViewState.SelectedThemeMode = mode;
-            _themeService.ApplyTheme(mode);
+            if (Enum.TryParse<ThemeMode>(modeName, true, out var mode))
+            {
+                ViewState.SelectedThemeMode = mode;
+                _themeService.ApplyTheme(mode);
+            }
         }
 
         private void OnLineNumbers()
