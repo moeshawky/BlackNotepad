@@ -198,7 +198,6 @@ AI Models used: Minimax M2.1
 
 <div align="center">
 
-**Made with ❤️ by Moe S.**
 
 [Website](https://github.com/moeshawky) · [Issues](../../issues) · [Releases](../../releases)
 
