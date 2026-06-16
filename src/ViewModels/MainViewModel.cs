@@ -1206,6 +1206,9 @@ namespace Savaged.BlackNotepad.ViewModels
                     RaisePropertyChanged(nameof(WordCount));
                     break;
                 case nameof(SelectedItem.LineEnding):
+                    // Line ending changes do not affect any displayed UI properties
+                    // (WordCount depends on Content, not LineEnding; GoTo/FindNext
+                    // read LineEnding at call time). No UI update required.
                     break;
             }
         }

@@ -27,8 +27,10 @@ namespace Savaged.BlackNotepad.Views
                     "pack://application:,,,/logo.ico", UriKind.Absolute);
                 Icon = System.Windows.Media.Imaging.BitmapFrame.Create(uri);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine(
+                    $"Failed to load icon: {ex.Message}");
             }
 
             _scrollSyncTimer = new DispatcherTimer

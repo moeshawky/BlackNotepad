@@ -21,7 +21,7 @@ namespace Savaged.BlackNotepad.Services
         /// Loads file content from disk and detects line endings on a background thread,
         /// then assigns properties on the UI thread after await completes.
         /// </summary>
-        /// <param name="location">File path to read. Must be a valid, readable file path.</param>
+        /// <param name="location">File path to read. If null, empty, or whitespace, returns a FileModel with empty Content.</param>
         /// <returns>
         /// A FileModel with Location, Name, Content, LineEnding, and IsDirty=false populated.
         /// Returns a FileModel with empty Content if location is null/whitespace or file is empty.
@@ -135,7 +135,12 @@ namespace Savaged.BlackNotepad.Services
             {
                 if (File.Exists(tmpPath))
                 {
-                    try { File.Delete(tmpPath); } catch { }
+                    try { File.Delete(tmpPath); }
+                    catch (Exception deleteEx)
+                    {
+                        System.Diagnostics.Debug.WriteLine(
+                            $"Failed to delete temp file '{tmpPath}': {deleteEx.Message}");
+                    }
                 }
                 throw;
             }

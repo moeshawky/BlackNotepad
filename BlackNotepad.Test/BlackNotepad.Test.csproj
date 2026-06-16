@@ -90,6 +90,7 @@
     <Compile Include="ViewModelTests\MainViewModelNullSafetyTests.cs" />
     <Compile Include="UnitTests\CoordsToDisplayNameConverterTests.cs" />
     <Compile Include="UnitTests\LineEndingEnumToDisplayNameConverterTests.cs" />
+    <Compile Include="UnitTests\FileModelServiceTests.cs" />
     <Compile Include="UnitTests\ViewStateServiceTests.cs" />
     <Compile Include="UnitTests\ViewStateModelTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
