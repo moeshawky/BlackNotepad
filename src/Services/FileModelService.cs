@@ -8,25 +8,100 @@ namespace Savaged.BlackNotepad.Services
 {
     public class FileModelService : IFileModelService
     {
+        /// <summary>
+        /// Creates a new empty FileModel with default values (Name="Untitled", Content="", IsDirty=false).
+        /// </summary>
+        /// <returns>A new FileModel instance. Caller owns the returned reference.</returns>
         public FileModel New()
         {
             return new FileModel();
         }
 
+        /// <summary>
+        /// Loads file content from disk and detects line endings on a background thread,
+        /// then assigns properties on the UI thread after await completes.
+        /// </summary>
+        /// <param name="location">File path to read. Must be a valid, readable file path.</param>
+        /// <returns>
+        /// A FileModel with Location, Name, Content, LineEnding, and IsDirty=false populated.
+        /// Returns a FileModel with empty Content if location is null/whitespace or file is empty.
+        /// </returns>
+        /// <exception cref="System.IO.FileNotFoundException">Thrown if the file does not exist.</exception>
+        /// <exception cref="System.IO.IOException">Thrown if file cannot be read.</exception>
         public async Task<FileModel> LoadAsync(string location)
         {
             var fileModel = new FileModel
             {
                 Location = location
             };
-            await Task.Run(() => ReadFile(fileModel));
-            
+
+            string content = null;
+            LineEndings lineEnding = LineEndings._;
+
+            await Task.Run(() =>
+            {
+                if (string.IsNullOrWhiteSpace(fileModel.Location))
+                {
+                    return;
+                }
+
+                using (var sr = new StreamReader(fileModel.Location, true))
+                {
+                    content = sr.ReadToEnd();
+                }
+
+                int rIndex = content.IndexOf('\r');
+                int nIndex = content.IndexOf('\n');
+
+                if (rIndex != -1 && nIndex != -1)
+                {
+                    if (rIndex < nIndex)
+                    {
+                        if (rIndex + 1 == nIndex)
+                        {
+                            lineEnding = LineEndings.CRLF;
+                        }
+                        else
+                        {
+                            lineEnding = LineEndings.CR;
+                        }
+                    }
+                    else
+                    {
+                        lineEnding = LineEndings.LF;
+                    }
+                }
+                else if (rIndex != -1)
+                {
+                    lineEnding = LineEndings.CR;
+                }
+                else if (nIndex != -1)
+                {
+                    lineEnding = LineEndings.LF;
+                }
+            });
+
+            if (content != null)
+            {
+                fileModel.LineEnding = lineEnding;
+                fileModel.Content = content;
+                fileModel.IsDirty = false;
+            }
+
             return fileModel;
         }
 
+        /// <summary>
+        /// Saves file content to disk atomically (write-to-temp-then-replace) on a background thread,
+        /// then sets IsDirty=false on the UI thread after await completes.
+        /// </summary>
+        /// <param name="fileModel">The file model to save. Must have non-null Location and Content.</param>
+        /// <exception cref="System.ArgumentException">Thrown if fileModel.Location is null or empty.</exception>
+        /// <exception cref="System.IO.IOException">Thrown if file cannot be written to disk.</exception>
         public async Task SaveAsync(FileModel fileModel)
         {
             await Task.Run(() => SaveFile(fileModel));
+            fileModel.IsDirty = false;
         }
 
         /// <summary>
@@ -55,7 +130,6 @@ namespace Savaged.BlackNotepad.Services
                     File.Move(tmpPath, fileModel.Location);
                 }
 
-                fileModel.IsDirty = false;
             }
             catch (Exception)
             {
@@ -65,61 +139,6 @@ namespace Savaged.BlackNotepad.Services
                 }
                 throw;
             }
-        }
-
-        private void ReadFile(FileModel fileModel)
-        {
-            if (string.IsNullOrEmpty(fileModel.Location)
-                || string.IsNullOrWhiteSpace(fileModel.Location))
-            {
-                return;
-            }
-
-            string content;
-            using (var sr = new StreamReader(fileModel.Location, true))
-            {
-                content = sr.ReadToEnd();
-            }
-
-            var lineEnding = LineEndings._;
-
-            // Bolt: Optimized from char-by-char loop to IndexOf scan.
-            // Also fixes bug where LF files were not detected correctly unless ending with \n.
-            int rIndex = content.IndexOf('\r');
-            int nIndex = content.IndexOf('\n');
-
-            if (rIndex != -1 && nIndex != -1)
-            {
-                if (rIndex < nIndex)
-                {
-                    // \r appears before \n
-                    if (rIndex + 1 == nIndex)
-                    {
-                        lineEnding = LineEndings.CRLF;
-                    }
-                    else
-                    {
-                        lineEnding = LineEndings.CR;
-                    }
-                }
-                else
-                {
-                    // \n appears before \r
-                    lineEnding = LineEndings.LF;
-                }
-            }
-            else if (rIndex != -1)
-            {
-                lineEnding = LineEndings.CR;
-            }
-            else if (nIndex != -1)
-            {
-                lineEnding = LineEndings.LF;
-            }
-
-            fileModel.LineEnding = lineEnding;
-            fileModel.Content = content;
-            fileModel.IsDirty = false;
         }
     }
 }
