@@ -268,3 +268,4 @@ namespace BlackNotepad.Test.UnitTests
             }
         }
     }
+}
