@@ -40,6 +40,8 @@ A clean, fast text editor that remembers your preferences:
 - ✅ **Custom Colors** - Font color selection
 - ✅ **Zoom Levels** - Multiple zoom levels from 8pt to 600%
 - ✅ **Print Support** - Print documents directly (Ctrl+P)
+- ✅ **Line Numbers** - Toggleable gutter synced with scrolling
+- ✅ **Faster Startup** - Deferred font loading, low-overhead typing
 
 ---
 
@@ -47,9 +49,9 @@ A clean, fast text editor that remembers your preferences:
 
 ### Download & Run
 
-1. Download the latest release from [GitHub Releases](../../releases)
-2. Extract `BlackNotepad-Portable.zip`
-3. Run `BlackNotepad.exe`
+1. Download `BlackNotepad-Setup-*.exe` from [GitHub Releases](../../releases)
+2. Run the installer (requires .NET Framework 4.7.2 or later)
+3. Launch BlackNotepad from the Start menu
 
 ### Set as Default
 
@@ -87,18 +89,14 @@ msbuild src\BlackNotepad.csproj /p:Configuration=Release /p:TargetFrameworkVersi
 
 ## 📦 Create Release Packages
 
-### Portable ZIP (No Installation)
+Releases are built by CI from version tags
+(see `.github/workflows/build.yml`). To build the installer
+locally with Inno Setup installed:
 
-```batch
-cd Releases
-powershell -Command "Compress-Archive -Path Portable\* -DestinationPath BlackNotepad-Portable.zip -Force"
-```
+```powershell
+iscc setup.iss
 
-### EXE Installer (IExpress)
-
-```batch
-cd Releases\Installer
-iexpress /N /Q /S BlackNotepad.sed
+# Output: BlackNotepad-Setup-<version>.exe
 ```
 
 ---

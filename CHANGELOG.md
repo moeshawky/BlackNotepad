@@ -4,6 +4,35 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.1.5] - 2026-09-03
+
+### Added
+- Open via file association: launching a file with BlackNotepad opens it
+  in a new tab instead of an empty window
+- Deferred system font enumeration: the font menu fills in after first
+  paint instead of stalling startup on the UI thread
+
+### Fixed
+- IsDirty guard against a concurrent keystroke clearing the dirty flag
+- Replace no longer lowercases the whole document when a
+  case-insensitive search finds no match
+
+### Performance
+- FileModel no longer retains a second document copy per keystroke
+- Allocation-free word count and line lookup (no per-keystroke Split)
+- Replace avoids full-document case copies; ReplaceAll reuses one cached
+  compiled pattern; GoTo seeks in a single pass
+- Prettify-JSON runs on a pool thread; ScrollViewer resolved once instead
+  of ten visual-tree walks per second; paste state refreshes on window
+  activation; gutter skips rebuilds while collapsed
+
+## [1.1.4] - 2026-06-17
+
+### Fixed
+- Threading bugs in file service and converter
+- Logging and test coverage for deferred items
+- Missing namespace closing brace in test file
+
 ## [1.1.3] - 2026-06-14
 
 ### Fixed

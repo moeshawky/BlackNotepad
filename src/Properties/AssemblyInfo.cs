@@ -55,6 +55,6 @@ using System.Windows;
 // You can specify all the values or you can default the Build and Revision Numbers
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-// Bumped to 1.1.3: fix IOException on close, fix status bar/line number default visibility
-[assembly: AssemblyVersion("1.1.3.0")]
-[assembly: AssemblyFileVersion("1.1.3.0")]
+// Bumped to 1.1.5: open-with support, IsDirty concurrency guard, typing/startup performance bundle
+[assembly: AssemblyVersion("1.1.5.0")]
+[assembly: AssemblyFileVersion("1.1.5.0")]
