@@ -11,7 +11,7 @@ namespace Savaged.BlackNotepad
 {
     public partial class App : Application
     {
-        private void OnApplicationStartup(object sender, StartupEventArgs e)
+        private async void OnApplicationStartup(object sender, StartupEventArgs e)
         {
             SimpleIoc.Default
                 .Register<IFontColourLookupService, FontColourLookupService>();
@@ -44,12 +44,25 @@ namespace Savaged.BlackNotepad
 
             SimpleIoc.Default.Register<MainViewModel>();
 
+            var vm = SimpleIoc.Default.GetInstance<MainViewModel>();
             var mainView = new MainWindow(SimpleIoc.Default.GetInstance<IThemeService>())
             {
-                DataContext = SimpleIoc.Default
-                .GetInstance<MainViewModel>()
+                DataContext = vm
             };
             mainView.Show();
+
+            if (e.Args.Length > 0 && System.IO.File.Exists(e.Args[0]))
+            {
+                try
+                {
+                    await vm.Open(e.Args[0]);
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine(
+                        $"Failed to open startup file: {ex.Message}");
+                }
+            }
         }
 
         private void OnDispatcherUnhandledException(
