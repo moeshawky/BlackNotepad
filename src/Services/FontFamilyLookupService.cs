@@ -1,6 +1,7 @@
 using Savaged.BlackNotepad.Models;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Media;
 
 namespace Savaged.BlackNotepad.Services
@@ -10,24 +11,49 @@ namespace Savaged.BlackNotepad.Services
     {
         private const string _default = "Arial Unicode MS";
         private readonly FontFamilyModel _defaultModel;
+        private bool _loaded;
 
         /// <summary>
-        /// Loads system fonts synchronously into the Index collection.
-        /// Fonts.SystemFontFamilies enumerates installed fonts and may be slow
-        /// on systems with many fonts installed.
+        /// Seeds only the default entry so construction stays cheap.
+        /// Full system font enumeration is deferred to LoadAsync, since
+        /// Fonts.SystemFontFamilies touches every installed font and
+        /// stalls application startup on the UI thread.
         /// </summary>
         public FontFamilyLookupService() : base()
         {
             _defaultModel = new FontFamilyModel(_default, _default);
+            Index.Add(_defaultModel);
+        }
 
-            var fonts = new List<FontFamilyModel>();
-            foreach (var fontFamily in Fonts.SystemFontFamilies)
+        /// <summary>
+        /// Enumerates and sorts installed fonts on a pool thread, then adds
+        /// them to the Index on the calling (UI) thread. Safe to call once;
+        /// repeat calls are no-ops. MainViewModel already re-applies the
+        /// persisted font selection as entries arrive.
+        /// </summary>
+        public async Task LoadAsync()
+        {
+            if (_loaded)
             {
-                var name = fontFamily.ToString();
-                fonts.Add(new FontFamilyModel(name, name));
+                return;
             }
+            _loaded = true;
 
-            foreach (var font in fonts.OrderBy(f => f.Value))
+            var fonts = await Task.Run(() =>
+            {
+                var found = new List<FontFamilyModel>();
+                foreach (var fontFamily in Fonts.SystemFontFamilies)
+                {
+                    var name = fontFamily.ToString();
+                    if (name != _default)
+                    {
+                        found.Add(new FontFamilyModel(name, name));
+                    }
+                }
+                return found.OrderBy(f => f.Value).ToList();
+            });
+
+            foreach (var font in fonts)
             {
                 Index.Add(font);
             }

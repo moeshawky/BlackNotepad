@@ -51,6 +51,21 @@ namespace Savaged.BlackNotepad
             };
             mainView.Show();
 
+            try
+            {
+                // Deferred until after first paint: enumerating installed
+                // fonts stalls startup on the UI thread for little benefit,
+                // since the menu fills in as entries arrive.
+                await SimpleIoc.Default
+                    .GetInstance<IFontFamilyLookupService>()
+                    .LoadAsync();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    $"Failed to load system fonts: {ex.Message}");
+            }
+
             if (e.Args.Length > 0 && System.IO.File.Exists(e.Args[0]))
             {
                 try

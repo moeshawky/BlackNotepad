@@ -1,5 +1,6 @@
 ﻿using Savaged.BlackNotepad.Models;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Savaged.BlackNotepad.Services
 {
@@ -7,5 +8,9 @@ namespace Savaged.BlackNotepad.Services
     {
         FontFamilyModel GetDefault();
         IList<FontFamilyModel> GetIndex();
+        /// <summary>
+        /// Loads installed system fonts in the background. Safe to call once.
+        /// </summary>
+        Task LoadAsync();
     }
 }
