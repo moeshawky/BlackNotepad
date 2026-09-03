@@ -92,16 +92,19 @@ namespace Savaged.BlackNotepad.Services
         }
 
         /// <summary>
-        /// Saves file content to disk atomically (write-to-temp-then-replace) on a background thread,
-        /// then sets IsDirty=false on the UI thread after await completes.
+        /// Saves file content to disk atomically (write-to-temp-then-replace) on a background thread.
+        /// After the await, clears IsDirty only if Content is unchanged (TOCTOU guard — a concurrent
+        /// keystroke during the await preserves dirty state).
         /// </summary>
         /// <param name="fileModel">The file model to save. Must have non-null Location and Content.</param>
         /// <exception cref="System.ArgumentException">Thrown if fileModel.Location is null or empty.</exception>
         /// <exception cref="System.IO.IOException">Thrown if file cannot be written to disk.</exception>
         public async Task SaveAsync(FileModel fileModel)
         {
+            string saved = fileModel.Content;
             await Task.Run(() => SaveFile(fileModel));
-            fileModel.IsDirty = false;
+            if (saved == fileModel.Content)
+                fileModel.IsDirty = false;
         }
 
         /// <summary>
