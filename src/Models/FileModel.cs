@@ -12,13 +12,12 @@ namespace Savaged.BlackNotepad.Models
         private string _location;
         private string _content;
         private LineEndings _lineEnding;
-        private string _previousContent;
         private bool _isDirty;
 
         public FileModel()
         {
             Name = _NEW;
-            _previousContent = Content = string.Empty;
+            Content = string.Empty;
             IsDirty = false;
             LineEnding = LineEndings.CRLF;
         }
@@ -59,9 +58,9 @@ namespace Savaged.BlackNotepad.Models
             {
                 if (_content != value)
                 {
-                    _previousContent = _content;
+                    var previousContent = _content;
                     Set(ref _content, value);
-                    if (_previousContent != _content)
+                    if (previousContent != _content)
                     {
                         IsDirty = true;
                     }
