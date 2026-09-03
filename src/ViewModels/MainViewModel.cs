@@ -50,6 +50,8 @@ namespace Savaged.BlackNotepad.ViewModels
         private bool _isFindMatchCase;
         private bool _isReadyForReplacement;
         private bool _isAutoSaveFailed;
+        private string _cachedReplaceAllPattern;
+        private Regex _cachedReplaceAllRegex;
 
         public MainViewModel(
             IDialogService dialogService,
@@ -107,7 +109,11 @@ namespace Savaged.BlackNotepad.ViewModels
             FontFamilyNames = fontFamilyLookupService.GetIndex();
             if (FontFamilyNames is INotifyCollectionChanged observable)
             {
-                observable.CollectionChanged += (s, e) => ApplySelectedOnFontFamily();
+                // Flags the selected font without rebinding the whole menu:
+                // ItemsSource already reflects each add via INCC, so a full
+                // rebind per font would regenerate all menu containers.
+                observable.CollectionChanged += (s, e) => ApplySelectedOnList(
+                    FontFamilyNames, ViewState.SelectedFontFamily);
             }
             ApplySelectedOnFontFamily();
 
@@ -291,8 +297,18 @@ namespace Savaged.BlackNotepad.ViewModels
             {
                 Set(ref _selectedText, value);
                 RaisePropertyChanged(nameof(IsCutOrCopyEnabled));
-                RaisePropertyChanged(nameof(IsPasteEnabled));
             }
+        }
+
+        /// <summary>
+        /// Re-queries clipboard state for the Paste command availability.
+        /// Called on window activation and after cut/copy/paste instead of
+        /// on every caret move, since Clipboard.ContainsText() opens the
+        /// OLE clipboard on each evaluation.
+        /// </summary>
+        public void RefreshPasteState()
+        {
+            RaisePropertyChanged(nameof(IsPasteEnabled));
         }
 
         public int CaretLine
@@ -359,12 +375,28 @@ namespace Savaged.BlackNotepad.ViewModels
             get
             {
                 var content = SelectedItem?.Content;
-                if (string.IsNullOrWhiteSpace(content))
+                if (string.IsNullOrEmpty(content))
                 {
                     return 0;
                 }
-                return content.Split(
-                    (char[])null, StringSplitOptions.RemoveEmptyEntries).Length;
+                // Allocation-free scan: the prior Split allocated a string
+                // array plus one entry per word on every keystroke. Unicode
+                // whitespace boundaries match Split((char[])null) semantics.
+                var count = 0;
+                var inWord = false;
+                for (int i = 0; i < content.Length; i++)
+                {
+                    if (char.IsWhiteSpace(content[i]))
+                    {
+                        inWord = false;
+                    }
+                    else if (!inWord)
+                    {
+                        inWord = true;
+                        count++;
+                    }
+                }
+                return count;
             }
         }
 
@@ -827,30 +859,27 @@ namespace Savaged.BlackNotepad.ViewModels
                     return;
                 }
 
-                var allText = _isFindMatchCase ?
-                    SelectedItem.Content : 
-                    SelectedItem.Content?.ToLower();
+                var content = SelectedItem.Content;
+                var comparison = _isFindMatchCase ?
+                    StringComparison.CurrentCulture :
+                    StringComparison.CurrentCultureIgnoreCase;
 
                 var replacement = _replaceDialog?.ReplacementText;
 
-                var sought = _isFindMatchCase ?
-                    TextSought : TextSought?.ToLower();
-
                 var textPrior = string.Empty;
-                if (allText.Contains(sought))
+                // Ordinal-free IndexOf with the same comparison FindNext uses,
+                // avoiding the two full-document ToLower copies.
+                if (content.IndexOf(TextSought, comparison) >= 0)
                 {
-                    textPrior = SelectedItem.Content?
-                        .Substring(0, IndexOfCaret);
+                    textPrior = content.Substring(0, IndexOfCaret);
 
-                    var endOfTextAfter =
-                        IndexOfCaret + sought.Length;
+                    var textAfter = content.Substring(
+                        IndexOfCaret + TextSought.Length);
 
-                    var textAfter = SelectedItem.Content?
-                        .Substring(endOfTextAfter);
-
-                    allText = $"{textPrior}{replacement}{textAfter}";
+                    content = string.Concat(
+                        textPrior, replacement, textAfter);
                 }
-                SelectedItem.Content = allText;
+                SelectedItem.Content = content;
 
                 var indexOfTextFound = textPrior.Length +
                     replacement.Length;
@@ -858,7 +887,7 @@ namespace Savaged.BlackNotepad.ViewModels
                 RaiseGoToRequested(
                     indexOfTextFound, 
                     0, 
-                    allText.LineOfIndexOrDefault(
+                    content.LineOfIndexOrDefault(
                         indexOfTextFound, SelectedItem.LineEnding));
 
                 _isReadyForReplacement = false;
@@ -882,11 +911,19 @@ namespace Savaged.BlackNotepad.ViewModels
             else
             {
                 // Escape search text for literal matching and replacement text for $ literals
-                text = Regex.Replace(
+                // Cache the compiled pattern: Replace All repeats with the
+                // same term recompiled the regex on every invocation.
+                if (_cachedReplaceAllRegex is null
+                    || _cachedReplaceAllPattern != TextSought)
+                {
+                    _cachedReplaceAllPattern = TextSought;
+                    _cachedReplaceAllRegex = new Regex(
+                        Regex.Escape(TextSought),
+                        RegexOptions.IgnoreCase | RegexOptions.Compiled);
+                }
+                text = _cachedReplaceAllRegex.Replace(
                     text,
-                    Regex.Escape(TextSought),
-                    replacement.Replace("$", "$$"),
-                    RegexOptions.IgnoreCase);
+                    replacement.Replace("$", "$$"));
             }
             SelectedItem.Content = text;
         }
@@ -938,27 +975,19 @@ namespace Savaged.BlackNotepad.ViewModels
                 return;
             }
 
-            var linesCounted = 0;
-            for (int i = 0; i < text.Length; i++)
-            {
-                if (text[i] == lineEndingChar
-                    || i == text.Length - 1)
-                {
-                    linesCounted++;
-                }
-            }
-
             if (lineNumberSought < 1)
             {
                 lineNumberSought = 1;
             }
-            else if (lineNumberSought > linesCounted)
-            {
-                lineNumberSought = linesCounted;
-            }
 
+            // Single pass: the prior version scanned once to clamp the line
+            // number, then scanned again with identical per-line arithmetic
+            // to locate the offset. Track the last line start so the
+            // beyond-end clamp needs no second scan. Per-line arithmetic is
+            // unchanged.
             var charsInLine = 0;
-            linesCounted = 0;
+            var linesCounted = 0;
+            var lastLineStart = 0;
             for (int i = 0; i < text.Length; i++)
             {
                 charsInLine++;
@@ -966,18 +995,20 @@ namespace Savaged.BlackNotepad.ViewModels
                     || i == text.Length - 1)
                 {
                     linesCounted++;
+                    var lineStartPosition =
+                        i + lineCharToInclude - charsInLine;
                     if (lineNumberSought == linesCounted)
                     {
-                        var lineStartPosition =
-                            i + lineCharToInclude - charsInLine;
-
                         RaiseGoToRequested(
                             lineStartPosition, 0, lineNumberSought);
-                        break;
+                        return;
                     }
+                    lastLineStart = lineStartPosition;
                     charsInLine = 0;
                 }
             }
+
+            RaiseGoToRequested(lastLineStart, 0, linesCounted);
         }
 
         private void OnTimeDate()
@@ -1227,7 +1258,7 @@ namespace Savaged.BlackNotepad.ViewModels
             }
         }
 
-        private void OnPrettifyJson()
+        private async void OnPrettifyJson()
         {
             if (SelectedItem is null || !SelectedItem.HasContent)
             {
@@ -1236,10 +1267,12 @@ namespace Savaged.BlackNotepad.ViewModels
             StartLongOperation();
             try
             {
-                dynamic parsed = JsonConvert
-                    .DeserializeObject(SelectedItem.Content);
-                SelectedItem.Content = JsonConvert
-                    .SerializeObject(parsed, Formatting.Indented);
+                // CPU-bound JSON DOM work runs on a pool thread so large
+                // documents do not freeze the UI; only the final assignment
+                // returns to the UI thread.
+                var content = SelectedItem.Content;
+                SelectedItem.Content = await Task.Run(
+                    () => PrettifyJsonText(content));
             }
             catch (JsonException)
             {
@@ -1252,6 +1285,18 @@ namespace Savaged.BlackNotepad.ViewModels
             {
                 EndLongOpertation();
             }
+        }
+
+        /// <summary>
+        /// Parses and re-serializes JSON with indentation. Pure CPU-bound
+        /// work with no UI access, safe to run on a pool thread.
+        /// </summary>
+        /// <param name="content">Raw JSON text to prettify.</param>
+        /// <returns>Indented JSON text.</returns>
+        private static string PrettifyJsonText(string content)
+        {
+            dynamic parsed = JsonConvert.DeserializeObject(content);
+            return JsonConvert.SerializeObject(parsed, Formatting.Indented);
         }
 
         /// <summary>
