@@ -81,6 +81,23 @@ namespace Savaged.BlackNotepad.Views.Controls
         public LineNumbersControl()
         {
             InitializeComponent();
+            // A collapsed gutter still received LineCount updates and rebuilt
+            // its text on every newline; refresh when shown instead.
+            IsVisibleChanged += OnIsVisibleChanged;
+        }
+
+        /// <summary>
+        /// Rebuilds line numbers deferred while the gutter was collapsed.
+        /// </summary>
+        /// <param name="sender">The event source. Unused.</param>
+        /// <param name="e">Visibility change data. Unused.</param>
+        private void OnIsVisibleChanged(
+            object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (IsVisible)
+            {
+                UpdateLineNumbers();
+            }
         }
 
         /// <summary>
@@ -133,6 +150,10 @@ namespace Savaged.BlackNotepad.Views.Controls
         /// </summary>
         private void UpdateLineNumbers()
         {
+            if (!IsVisible)
+            {
+                return;
+            }
             var count = Math.Max(1, LineCount);
             var lines = new string[count];
             for (int i = 0; i < count; i++)

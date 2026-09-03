@@ -15,6 +15,7 @@ namespace Savaged.BlackNotepad.Views
         private bool _isClosing;
         private readonly DispatcherTimer _scrollSyncTimer;
         private readonly IThemeService _themeService;
+        private ScrollViewer _contentScrollViewer;
 
         public MainWindow(IThemeService themeService)
         {
@@ -46,12 +47,23 @@ namespace Savaged.BlackNotepad.Views
             _viewModel.GoToRequested += OnGoToRequested;
             _viewModel.FocusRequested += OnFocusRequested;
             _viewModel.TimeDateRequested += OnTimeDateRequested;
+            // Paste availability only changes when another app touches the
+            // clipboard (which deactivates us first) or after our own
+            // cut/copy/paste, so refresh on activation instead of per
+            // keystroke via the selection handler.
+            Activated += OnWindowActivated;
+            _contentScrollViewer = FindChildScrollViewer(ContentText);
             _scrollSyncTimer.Start();
 
             if (_themeService != null && _viewModel?.ViewState != null)
             {
                 _themeService.ApplyTheme(_viewModel.ViewState.SelectedThemeMode);
             }
+        }
+
+        private void OnWindowActivated(object sender, EventArgs e)
+        {
+            _viewModel?.RefreshPasteState();
         }
 
         private void OnTimeDateRequested()
@@ -110,6 +122,7 @@ namespace Savaged.BlackNotepad.Views
                 _isClosing = await _viewModel.OnClosing();                
                 if (_isClosing)
                 {
+                    Activated -= OnWindowActivated;
                     _viewModel.GoToRequested -= OnGoToRequested;
                     _viewModel.FocusRequested -= OnFocusRequested;
                     _viewModel.TimeDateRequested -= OnTimeDateRequested;
@@ -159,16 +172,19 @@ namespace Savaged.BlackNotepad.Views
         private void OnCutMenuItemClick(object sender, RoutedEventArgs e)
         {
             ContentText.Cut();
+            _viewModel?.RefreshPasteState();
         }
 
         private void OnCopyMenuItemClick(object sender, RoutedEventArgs e)
         {
             ContentText.Copy();
+            _viewModel?.RefreshPasteState();
         }
 
         private void OnPasteMenuItemClick(object sender, RoutedEventArgs e)
         {
             ContentText.Paste();
+            _viewModel?.RefreshPasteState();
         }
 
         private void OnSelectAllMenuItemClick(object sender, RoutedEventArgs e)
@@ -183,10 +199,15 @@ namespace Savaged.BlackNotepad.Views
                 return;
             }
             _viewModel.LineNumberCount = ContentText.LineCount;
-            var scrollViewer = FindChildScrollViewer(ContentText);
-            if (scrollViewer != null)
+            // The viewer is resolved once on load: walking the visual tree
+            // on every 100ms tick kept the UI thread permanently warm.
+            if (_contentScrollViewer is null)
             {
-                _viewModel.LineScrollOffset = scrollViewer.VerticalOffset;
+                _contentScrollViewer = FindChildScrollViewer(ContentText);
+            }
+            if (_contentScrollViewer != null)
+            {
+                _viewModel.LineScrollOffset = _contentScrollViewer.VerticalOffset;
             }
         }
 
