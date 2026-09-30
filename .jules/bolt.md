@@ -1,0 +1,3 @@
+## 2026-09-30 - ⚡ Bolt: Event-Driven Scroll and Line Count Synchronization
+**Learning:** The application was using a 100ms `DispatcherTimer` to poll for `TextBox` line counts and `ScrollViewer` scroll offsets. This kept the UI thread permanently warm and wasted CPU cycles when idle. Event-driven synchronization is vastly superior but requires manual invocation during initial load since `TextChanged` does not fire when the initial text is bound.
+**Action:** When synchronizing UI state in WPF, rely on event handlers (`TextChanged`, `ScrollChanged`, `SizeChanged`) instead of polling timers to prevent unnecessary thread awakenings, and ensure the state is synced manually on `OnLoaded`.
