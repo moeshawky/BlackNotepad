@@ -1,0 +1,3 @@
+## 2026-10-03 - Optimize MainViewModel.Replace String Mutations
+**Learning:** `MainViewModel.Replace` originally used `IndexOf` to scan the full document (O(N)), then allocated two `Substring`s and a `string.Concat`. On large documents, this caused significant GC pressure and lag for single replacements.
+**Action:** `MainViewModel.Replace` is optimized by using `string.Compare` with string indices to validate matches instead of an O(N) full document scan. It also uses `string.Remove(...).Insert(...)` for faster string mutation compared to allocating multiple substrings and using `string.Concat`.
