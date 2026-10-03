@@ -866,22 +866,18 @@ namespace Savaged.BlackNotepad.ViewModels
 
                 var replacement = _replaceDialog?.ReplacementText;
 
-                var textPrior = string.Empty;
-                // Ordinal-free IndexOf with the same comparison FindNext uses,
-                // avoiding the two full-document ToLower copies.
-                if (content.IndexOf(TextSought, comparison) >= 0)
+                var textPriorLen = 0;
+                // Bolt: O(M) verification instead of O(N) full-document scan
+                if (IndexOfCaret >= 0 && IndexOfCaret <= content.Length - TextSought.Length &&
+                    string.Compare(content, IndexOfCaret, TextSought, 0, TextSought.Length, comparison) == 0)
                 {
-                    textPrior = content.Substring(0, IndexOfCaret);
-
-                    var textAfter = content.Substring(
-                        IndexOfCaret + TextSought.Length);
-
-                    content = string.Concat(
-                        textPrior, replacement, textAfter);
+                    textPriorLen = IndexOfCaret;
+                    // Bolt: Fewer string allocations using Remove/Insert vs multiple Substrings + Concat
+                    content = content.Remove(IndexOfCaret, TextSought.Length).Insert(IndexOfCaret, replacement);
                 }
                 SelectedItem.Content = content;
 
-                var indexOfTextFound = textPrior.Length +
+                var indexOfTextFound = textPriorLen +
                     replacement.Length;
 
                 RaiseGoToRequested(
