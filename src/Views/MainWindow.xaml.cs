@@ -13,7 +13,6 @@ namespace Savaged.BlackNotepad.Views
     {
         private MainViewModel _viewModel;
         private bool _isClosing;
-        private readonly DispatcherTimer _scrollSyncTimer;
         private readonly IThemeService _themeService;
         private ScrollViewer _contentScrollViewer;
 
@@ -33,12 +32,6 @@ namespace Savaged.BlackNotepad.Views
                 System.Diagnostics.Debug.WriteLine(
                     $"Failed to load icon: {ex.Message}");
             }
-
-            _scrollSyncTimer = new DispatcherTimer
-            {
-                Interval = System.TimeSpan.FromMilliseconds(100)
-            };
-            _scrollSyncTimer.Tick += OnScrollSyncTick;
         }
 
         private void OnLoaded(object sender, RoutedEventArgs e)
@@ -52,8 +45,17 @@ namespace Savaged.BlackNotepad.Views
             // cut/copy/paste, so refresh on activation instead of per
             // keystroke via the selection handler.
             Activated += OnWindowActivated;
+
             _contentScrollViewer = FindChildScrollViewer(ContentText);
-            _scrollSyncTimer.Start();
+            if (_contentScrollViewer != null)
+            {
+                _contentScrollViewer.ScrollChanged += OnScrollChanged;
+            }
+            ContentText.TextChanged += OnTextChanged;
+            ContentText.SizeChanged += OnSizeChanged;
+
+            SyncLineCount();
+            SyncScrollOffset();
 
             if (_themeService != null && _viewModel?.ViewState != null)
             {
@@ -118,7 +120,6 @@ namespace Savaged.BlackNotepad.Views
         {
             if (_viewModel != null && !_isClosing)
             {
-                _scrollSyncTimer.Stop();
                 _isClosing = await _viewModel.OnClosing();                
                 if (_isClosing)
                 {
@@ -126,6 +127,12 @@ namespace Savaged.BlackNotepad.Views
                     _viewModel.GoToRequested -= OnGoToRequested;
                     _viewModel.FocusRequested -= OnFocusRequested;
                     _viewModel.TimeDateRequested -= OnTimeDateRequested;
+                    if (_contentScrollViewer != null)
+                    {
+                        _contentScrollViewer.ScrollChanged -= OnScrollChanged;
+                    }
+                    ContentText.TextChanged -= OnTextChanged;
+                    ContentText.SizeChanged -= OnSizeChanged;
                     Application.Current.Shutdown();
                 }
             }
@@ -192,20 +199,32 @@ namespace Savaged.BlackNotepad.Views
             ContentText.SelectAll();
         }
 
-        private void OnScrollSyncTick(object sender, EventArgs e)
+        private void OnTextChanged(object sender, TextChangedEventArgs e)
         {
-            if (_viewModel == null)
+            SyncLineCount();
+        }
+
+        private void OnSizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            SyncLineCount();
+        }
+
+        private void OnScrollChanged(object sender, ScrollChangedEventArgs e)
+        {
+            SyncScrollOffset();
+        }
+
+        private void SyncLineCount()
+        {
+            if (_viewModel != null)
             {
-                return;
+                _viewModel.LineNumberCount = ContentText.LineCount;
             }
-            _viewModel.LineNumberCount = ContentText.LineCount;
-            // The viewer is resolved once on load: walking the visual tree
-            // on every 100ms tick kept the UI thread permanently warm.
-            if (_contentScrollViewer is null)
-            {
-                _contentScrollViewer = FindChildScrollViewer(ContentText);
-            }
-            if (_contentScrollViewer != null)
+        }
+
+        private void SyncScrollOffset()
+        {
+            if (_viewModel != null && _contentScrollViewer != null)
             {
                 _viewModel.LineScrollOffset = _contentScrollViewer.VerticalOffset;
             }
