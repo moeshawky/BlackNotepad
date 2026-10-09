@@ -13,7 +13,6 @@ namespace Savaged.BlackNotepad.Views
     {
         private MainViewModel _viewModel;
         private bool _isClosing;
-        private readonly DispatcherTimer _scrollSyncTimer;
         private readonly IThemeService _themeService;
         private ScrollViewer _contentScrollViewer;
 
@@ -33,12 +32,6 @@ namespace Savaged.BlackNotepad.Views
                 System.Diagnostics.Debug.WriteLine(
                     $"Failed to load icon: {ex.Message}");
             }
-
-            _scrollSyncTimer = new DispatcherTimer
-            {
-                Interval = System.TimeSpan.FromMilliseconds(100)
-            };
-            _scrollSyncTimer.Tick += OnScrollSyncTick;
         }
 
         private void OnLoaded(object sender, RoutedEventArgs e)
@@ -53,7 +46,14 @@ namespace Savaged.BlackNotepad.Views
             // keystroke via the selection handler.
             Activated += OnWindowActivated;
             _contentScrollViewer = FindChildScrollViewer(ContentText);
-            _scrollSyncTimer.Start();
+
+            ContentText.TextChanged += OnContentTextChanged;
+            ContentText.SizeChanged += OnContentSizeChanged;
+            if (_contentScrollViewer != null)
+            {
+                _contentScrollViewer.ScrollChanged += OnContentScrollChanged;
+            }
+            SyncLineCountAndScroll();
 
             if (_themeService != null && _viewModel?.ViewState != null)
             {
@@ -118,7 +118,6 @@ namespace Savaged.BlackNotepad.Views
         {
             if (_viewModel != null && !_isClosing)
             {
-                _scrollSyncTimer.Stop();
                 _isClosing = await _viewModel.OnClosing();                
                 if (_isClosing)
                 {
@@ -192,15 +191,31 @@ namespace Savaged.BlackNotepad.Views
             ContentText.SelectAll();
         }
 
-        private void OnScrollSyncTick(object sender, EventArgs e)
+        private void OnContentTextChanged(object sender, TextChangedEventArgs e)
+        {
+            SyncLineCountAndScroll();
+        }
+
+        private void OnContentSizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            SyncLineCountAndScroll();
+        }
+
+        private void OnContentScrollChanged(object sender, ScrollChangedEventArgs e)
+        {
+            if (_viewModel != null)
+            {
+                _viewModel.LineScrollOffset = e.VerticalOffset;
+            }
+        }
+
+        private void SyncLineCountAndScroll()
         {
             if (_viewModel == null)
             {
                 return;
             }
             _viewModel.LineNumberCount = ContentText.LineCount;
-            // The viewer is resolved once on load: walking the visual tree
-            // on every 100ms tick kept the UI thread permanently warm.
             if (_contentScrollViewer is null)
             {
                 _contentScrollViewer = FindChildScrollViewer(ContentText);
