@@ -980,32 +980,47 @@ namespace Savaged.BlackNotepad.ViewModels
                 lineNumberSought = 1;
             }
 
-            // Single pass: the prior version scanned once to clamp the line
-            // number, then scanned again with identical per-line arithmetic
-            // to locate the offset. Track the last line start so the
-            // beyond-end clamp needs no second scan. Per-line arithmetic is
-            // unchanged.
-            var charsInLine = 0;
+            // Bolt: Optimized GoTo using IndexOf instead of an unoptimized O(N) character-by-character scan,
+            // explicitly handling empty strings, trailing lines, and specific lineCharToInclude logic
+            // to perfectly maintain legacy bug-for-bug indexing behavior.
             var linesCounted = 0;
+            var position = text.IndexOf(lineEndingChar);
             var lastLineStart = 0;
-            for (int i = 0; i < text.Length; i++)
+            int previousPosition = -1;
+
+            while (position >= 0)
             {
-                charsInLine++;
-                if (text[i] == lineEndingChar
-                    || i == text.Length - 1)
+                linesCounted++;
+                int charsInLine = position - previousPosition;
+                int lineStartPosition = position + lineCharToInclude - charsInLine;
+
+                if (lineNumberSought == linesCounted)
                 {
-                    linesCounted++;
-                    var lineStartPosition =
-                        i + lineCharToInclude - charsInLine;
-                    if (lineNumberSought == linesCounted)
-                    {
-                        RaiseGoToRequested(
-                            lineStartPosition, 0, lineNumberSought);
-                        return;
-                    }
-                    lastLineStart = lineStartPosition;
-                    charsInLine = 0;
+                    RaiseGoToRequested(lineStartPosition, 0, lineNumberSought);
+                    return;
                 }
+
+                lastLineStart = lineStartPosition;
+                previousPosition = position;
+
+                if (position == text.Length - 1) break;
+
+                position = text.IndexOf(lineEndingChar, position + 1);
+            }
+
+            if (text.Length > 0 && text[text.Length - 1] != lineEndingChar)
+            {
+                linesCounted++;
+                int charsInLine = text.Length - 1 - previousPosition;
+                int lineStartPosition = text.Length - 1 + lineCharToInclude - charsInLine;
+
+                if (lineNumberSought == linesCounted)
+                {
+                    RaiseGoToRequested(lineStartPosition, 0, lineNumberSought);
+                    return;
+                }
+
+                lastLineStart = lineStartPosition;
             }
 
             RaiseGoToRequested(lastLineStart, 0, linesCounted);
