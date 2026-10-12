@@ -2,6 +2,7 @@
 using GalaSoft.MvvmLight.CommandWpf;
 using Microsoft.Win32;
 using Newtonsoft.Json;
+using System.IO;
 using Savaged.BlackNotepad.Extensions;
 using Savaged.BlackNotepad.Lookups;
 using Savaged.BlackNotepad.Models;
@@ -1295,8 +1296,16 @@ namespace Savaged.BlackNotepad.ViewModels
         /// <returns>Indented JSON text.</returns>
         private static string PrettifyJsonText(string content)
         {
-            dynamic parsed = JsonConvert.DeserializeObject(content);
-            return JsonConvert.SerializeObject(parsed, Formatting.Indented);
+            using (var stringReader = new StringReader(content))
+            using (var stringWriter = new StringWriter())
+            {
+                using (var jsonReader = new JsonTextReader(stringReader) { DateParseHandling = DateParseHandling.None })
+                using (var jsonWriter = new JsonTextWriter(stringWriter) { Formatting = Formatting.Indented })
+                {
+                    jsonWriter.WriteToken(jsonReader);
+                }
+                return stringWriter.ToString();
+            }
         }
 
         /// <summary>
