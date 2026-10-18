@@ -1295,8 +1295,15 @@ namespace Savaged.BlackNotepad.ViewModels
         /// <returns>Indented JSON text.</returns>
         private static string PrettifyJsonText(string content)
         {
-            dynamic parsed = JsonConvert.DeserializeObject(content);
-            return JsonConvert.SerializeObject(parsed, Formatting.Indented);
+            // ⚡ Bolt: Optimized by streaming JSON tokens to avoid massive intermediate DOM allocations
+            using (var stringReader = new System.IO.StringReader(content))
+            using (var jsonReader = new JsonTextReader(stringReader) { DateParseHandling = DateParseHandling.None })
+            using (var stringWriter = new System.IO.StringWriter())
+            using (var jsonWriter = new JsonTextWriter(stringWriter) { Formatting = Formatting.Indented })
+            {
+                jsonWriter.WriteToken(jsonReader);
+                return stringWriter.ToString();
+            }
         }
 
         /// <summary>
