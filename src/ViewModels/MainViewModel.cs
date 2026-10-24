@@ -866,23 +866,29 @@ namespace Savaged.BlackNotepad.ViewModels
 
                 var replacement = _replaceDialog?.ReplacementText;
 
-                var textPrior = string.Empty;
-                // Ordinal-free IndexOf with the same comparison FindNext uses,
-                // avoiding the two full-document ToLower copies.
-                if (content.IndexOf(TextSought, comparison) >= 0)
+                var indexOfTextFound = 0;
+                // Avoid O(N) full document scan using IndexOf by just verifying the match at the caret location
+                if (content.Length >= IndexOfCaret + TextSought.Length &&
+                    string.Compare(content, IndexOfCaret, TextSought, 0, TextSought.Length, comparison) == 0)
                 {
-                    textPrior = content.Substring(0, IndexOfCaret);
-
-                    var textAfter = content.Substring(
-                        IndexOfCaret + TextSought.Length);
-
-                    content = string.Concat(
-                        textPrior, replacement, textAfter);
+                    var textPrior = content.Substring(0, IndexOfCaret);
+                    var textAfter = content.Substring(IndexOfCaret + TextSought.Length);
+                    content = string.Concat(textPrior, replacement, textAfter);
+                    indexOfTextFound = IndexOfCaret + replacement.Length;
+                }
+                else
+                {
+                    // Fallback in case caret isn't at the match for some reason (which can happen if replacing all or manual edits)
+                    int matchIndex = content.IndexOf(TextSought, comparison);
+                    if (matchIndex >= 0)
+                    {
+                        var textPrior = content.Substring(0, matchIndex);
+                        var textAfter = content.Substring(matchIndex + TextSought.Length);
+                        content = string.Concat(textPrior, replacement, textAfter);
+                        indexOfTextFound = matchIndex + replacement.Length;
+                    }
                 }
                 SelectedItem.Content = content;
-
-                var indexOfTextFound = textPrior.Length +
-                    replacement.Length;
 
                 RaiseGoToRequested(
                     indexOfTextFound, 
