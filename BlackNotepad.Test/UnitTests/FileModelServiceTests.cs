@@ -267,5 +267,39 @@ namespace BlackNotepad.Test.UnitTests
                 Directory.Delete(tempDir, true);
             }
         }
+
+        [TestMethod]
+        public async Task SaveAsync_EliminatesTOCTOU_WritesImmutableSnapshot()
+        {
+            var tempDir = Path.Combine(Path.GetTempPath(), "BlackNotepadTest_" + Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(tempDir);
+            try
+            {
+                var historyStore = Path.Combine(tempDir, "History");
+                var historyService = new FileHistoryService(historyStore);
+                var service = new FileModelService(historyService);
+                var location = Path.Combine(tempDir, "toctou.txt");
+
+                var fileModel = new FileModel
+                {
+                    Location = location,
+                    Content = "snapshot content",
+                    IsDirty = true
+                };
+
+                await service.SaveAsync(fileModel, SaveReason.ManualSave);
+
+                Assert.AreEqual("snapshot content", File.ReadAllText(location));
+                Assert.IsFalse(fileModel.IsDirty);
+
+                var history = await historyService.GetHistoryAsync(location);
+                Assert.AreEqual(1, history.Count);
+                Assert.AreEqual(SaveReason.ManualSave, history[0].Reason);
+            }
+            finally
+            {
+                Directory.Delete(tempDir, true);
+            }
+        }
     }
 }

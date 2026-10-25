@@ -17,10 +17,10 @@ namespace BlackNotepad.Test.UnitTests
             Assert.AreEqual("Windows (CRLF)", value);
             value = (string)converter.Convert(
                 LineEndings.LF, typeof(string), null, null);
-            Assert.AreEqual("Mac (LF)", value);
+            Assert.AreEqual("Unix (LF)", value);
             value = (string)converter.Convert(
                 LineEndings.CR, typeof(string), null, null);
-            Assert.AreEqual("Unix (CR)", value);
+            Assert.AreEqual("Classic Mac (CR)", value);
         }
     }
 }

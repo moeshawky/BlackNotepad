@@ -358,6 +358,8 @@ BlackNotepad-master/
 
 # Internal audit reports — do not publish
 MAAT_REPORT.md
+.maat/
+.maat
 PRE_PUBLISH_AUDIT.md
 
 # Distribution artifacts — built fresh for releases
@@ -366,3 +368,6 @@ Distribution/
 # Jules patch files
 .jules/
 .jules_compare/
+
+# Agentic dev artifacts
+.opencode/

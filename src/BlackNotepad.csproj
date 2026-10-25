@@ -29,9 +29,9 @@
     <SupportUrl>https://savaged.github.io/BlackNotepad/</SupportUrl>
     <ProductName>BlackNotepad</ProductName>
     <PublisherName>savaged</PublisherName>
-    <MinimumRequiredVersion>1.1.5.0</MinimumRequiredVersion>
+    <MinimumRequiredVersion>1.1.6.0</MinimumRequiredVersion>
     <ApplicationRevision>0</ApplicationRevision>
-    <ApplicationVersion>1.1.5.%2a</ApplicationVersion>
+    <ApplicationVersion>1.1.6.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>
     <BootstrapperEnabled>true</BootstrapperEnabled>
@@ -93,6 +93,7 @@
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Security" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xaml">
       <RequiredTargetFramework>4.0</RequiredTargetFramework>
@@ -114,6 +115,10 @@
     <Compile Include="Extensions\StringEx.cs" />
     <Compile Include="Lookups\LineEndings.cs" />
     <Compile Include="Models\FileModel.cs" />
+    <Compile Include="Models\FileSaveSnapshot.cs" />
+    <Compile Include="Models\HistoryManifest.cs" />
+    <Compile Include="Models\HistoryVersion.cs" />
+    <Compile Include="Models\SaveReason.cs" />
     <Compile Include="Models\FontZoomModel.cs" />
     <Compile Include="Models\ISelectionModel.cs" />
     <Compile Include="Models\SelectionModelBase.cs" />
@@ -122,7 +127,10 @@
     <Compile Include="Models\ThemeMode.cs" />
     <Compile Include="Models\ViewStateModel.cs" />
     <Compile Include="Services\DialogService.cs" />
+    <Compile Include="Services\FileHistoryService.cs" />
     <Compile Include="Services\FileModelService.cs" />
+    <Compile Include="Services\IFileHistoryService.cs" />
+    <Compile Include="Services\MsDeltaCodec.cs" />
     <Compile Include="Services\FontZoomLookupService.cs" />
     <Compile Include="Services\IDialogService.cs" />
     <Compile Include="Services\IFileModelService.cs" />
@@ -143,6 +151,9 @@
     <Compile Include="ViewModels\FindDialogViewModel.cs" />
     <Compile Include="ViewModels\FindNextEventArgs.cs" />
     <Compile Include="ViewModels\GoToDialogViewModel.cs" />
+    <Compile Include="ViewModels\HistoryDialogViewModel.cs" />
+    <Compile Include="ViewModels\HistoryVersionItemViewModel.cs" />
+    <Compile Include="ViewModels\IHistoryDialogViewModel.cs" />
     <Compile Include="ViewModels\IActionDialogViewModel.cs" />
     <Compile Include="ViewModels\IDialogViewModel.cs" />
     <Compile Include="ViewModels\IExclusiveDialogViewModel.cs" />
@@ -175,6 +186,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\GoToDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\HistoryDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -211,6 +226,9 @@
     </Compile>
     <Compile Include="Views\GoToDialog.xaml.cs">
       <DependentUpon>GoToDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\HistoryDialog.xaml.cs">
+      <DependentUpon>HistoryDialog.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>

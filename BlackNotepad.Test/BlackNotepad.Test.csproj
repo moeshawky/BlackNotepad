@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\packages\MSTest.TestAdapter.2.1.2\build\net45\MSTest.TestAdapter.props" Condition="Exists('..\packages\MSTest.TestAdapter.2.1.2\build\net45\MSTest.TestAdapter.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
@@ -63,7 +63,11 @@
     <Reference Include="Moq, Version=4.15.0.0, Culture=neutral, PublicKeyToken=69f491c39445e920, processorArchitecture=MSIL">
       <HintPath>..\packages\Moq.4.15.2\lib\net45\Moq.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.12.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="PresentationFramework" />
+    <Reference Include="System.Security" />
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
@@ -88,9 +92,12 @@
     <Compile Include="ViewModelTests\GoToTests.cs" />
     <Compile Include="ViewModelTests\TestBase.cs" />
     <Compile Include="ViewModelTests\MainViewModelNullSafetyTests.cs" />
+    <Compile Include="ViewModelTests\HistoryDialogViewModelTests.cs" />
     <Compile Include="UnitTests\CoordsToDisplayNameConverterTests.cs" />
     <Compile Include="UnitTests\LineEndingEnumToDisplayNameConverterTests.cs" />
+    <Compile Include="UnitTests\FileHistoryServiceTests.cs" />
     <Compile Include="UnitTests\FileModelServiceTests.cs" />
+    <Compile Include="UnitTests\StringExTests.cs" />
     <Compile Include="UnitTests\ViewStateServiceTests.cs" />
     <Compile Include="UnitTests\ViewStateModelTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

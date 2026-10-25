@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.1.6] - 2026-10-26
+
+### Added
+- Previous Versions / File History: browse and restore local revisions with native Win32 msdelta.dll delta compression
+- Public StringEx.PrettifyJson extension method with streaming token indentation supporting multi-token JSON payloads
+- Automated unit and ViewModel test execution step in GitHub Actions CI workflow (.github/workflows/build.yml)
+- Comprehensive test fixtures for StringEx and HistoryDialogViewModel (73 tests total)
+
+### Fixed
+- Error containment in Previous Versions dialog: failed preview loads disable the restore command, preventing error strings from overwriting document buffers
+- TOCTOU tab-switch race in MainViewModel.OnPreviousVersions: captures target document reference before asynchronous dialog initialization
+- Circular reference and duplicate VersionId guards in FileHistoryService manifest parsing
+- 11-parameter Win32 CreateDeltaB ABI signature (DELTA_FILE_TYPE_RAW), 0-byte buffer, and integer overflow guards in MsDeltaCodec native P/Invoke
+- Null-safety guard on ViewState.SelectedFontZoom during MainViewModel construction and IndexOfCaret synchronization in RaiseGoToRequested
+- Upstream GPLv2 headers restored across all newly added source and test files
+
 ## [1.1.5] - 2026-09-03
 
 ### Added

@@ -1,4 +1,4 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Linq;
 using System.Threading;
 using TestStack.White;
@@ -9,6 +9,7 @@ using TestStack.White.UIItems.MenuItems;
 namespace BlackNotepad.Test.UITests
 {
     [TestClass]
+    [TestCategory("UI")]
     public class BasicTests : UITestBase
     {
         [TestMethod]

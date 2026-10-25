@@ -24,6 +24,9 @@ namespace Savaged.BlackNotepad
                 .Register<IViewStateService, ViewStateService>();
 
             SimpleIoc.Default
+                .Register<IFileHistoryService, FileHistoryService>();
+
+            SimpleIoc.Default
                 .Register<IFileModelService, FileModelService>();
 
 
@@ -33,6 +36,8 @@ namespace Savaged.BlackNotepad
                 .Register<IFindDialogViewModel, FindDialogViewModel>();
             SimpleIoc.Default
                 .Register<IReplaceDialogViewModel, ReplaceDialogViewModel>();
+            SimpleIoc.Default
+                .Register<IHistoryDialogViewModel, HistoryDialogViewModel>();
             SimpleIoc.Default.Register<OpenFileDialog>();
             SimpleIoc.Default.Register<SaveFileDialog>();
 

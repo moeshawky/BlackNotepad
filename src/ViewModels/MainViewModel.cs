@@ -121,9 +121,9 @@ namespace Savaged.BlackNotepad.ViewModels
             _fontZoomIndex = fontZoomLookupService.GetIndex();
             _defaultZoom = fontZoomLookupService.GetDefault().Zoom;
             _isFontZoomMin =
-                ViewState.SelectedFontZoom.Key == _fontZoomIndex.First().Key;
+                ViewState.SelectedFontZoom?.Key == _fontZoomIndex.First().Key;
             _isFontZoomMax =
-                ViewState.SelectedFontZoom.Key == _fontZoomIndex.Last().Key;
+                ViewState.SelectedFontZoom?.Key == _fontZoomIndex.Last().Key;
 
             _busyRegister = new List<string>();
 
@@ -133,6 +133,7 @@ namespace Savaged.BlackNotepad.ViewModels
             OpenCmd = new RelayCommand(OnOpen, () => CanExecuteOpen);
             SaveCmd = new RelayCommand(OnSave, () => CanExecute);
             SaveAsCmd = new RelayCommand(OnSaveAs, () => CanExecute);
+            PreviousVersionsCmd = new RelayCommand(OnPreviousVersions, () => CanExecutePreviousVersions);
             ExitCmd = new RelayCommand(OnExit, () => CanExecute);
             OpenRecentCmd = new RelayCommand<string>(OnOpenRecent, (s) => CanExecute);
             FindCmd = new RelayCommand(OnFind, () => CanExecuteFind);
@@ -281,6 +282,8 @@ namespace Savaged.BlackNotepad.ViewModels
                         OnSelectedItemPropertyChanged;
 
                     RaisePropertyChanged(nameof(Title));
+                    RaisePropertyChanged(nameof(CanExecutePreviousVersions));
+                    PreviousVersionsCmd?.RaiseCanExecuteChanged();
                 }
             }
         }
@@ -345,6 +348,10 @@ namespace Savaged.BlackNotepad.ViewModels
         public RelayCommand OpenCmd { get; }
         public RelayCommand SaveCmd { get; }
         public RelayCommand SaveAsCmd { get; }
+        /// <summary>
+        /// Gets the command to open the Previous Versions dialog for the current document.
+        /// </summary>
+        public RelayCommand PreviousVersionsCmd { get; }
         public RelayCommand ExitCmd { get; }
         public RelayCommand<string> OpenRecentCmd { get; }
         public RelayCommand FindCmd { get; }
@@ -449,8 +456,15 @@ namespace Savaged.BlackNotepad.ViewModels
         public bool CanExecuteDragDrop => CanExecute &&
             !SelectedItem.IsDirty;
 
+        /// <summary>
+        /// Gets a value indicating whether the Previous Versions command can be executed.
+        /// </summary>
+        public bool CanExecutePreviousVersions => CanExecute && SelectedItem != null && !SelectedItem.IsNew;
+
         public bool CanExecutePrettifyJson => CanExecute &&
             SelectedItem.HasContent;
+
+
 
 
         public bool IsUndoEnabled => !IsBusy &&
@@ -464,6 +478,8 @@ namespace Savaged.BlackNotepad.ViewModels
 
         public bool IsSelectAllEnabled => !IsBusy &&
             SelectedItem.HasContent;
+
+
 
         /// <summary>
         /// Indicates that the most recent auto-save attempt failed.
@@ -486,6 +502,7 @@ namespace Savaged.BlackNotepad.ViewModels
         private void RaiseGoToRequested(
             int caretIndex, int selectionLength, int line)
         {
+            IndexOfCaret = caretIndex;
             GoToRequested?
                 .Invoke(caretIndex, selectionLength, line);
         }
@@ -596,17 +613,19 @@ namespace Savaged.BlackNotepad.ViewModels
 
         private async void OnSave()
         {
-            await SaveAsync();
+            await SaveAsync(SaveReason.ManualSave);
         }
-        private async Task SaveAsync()
+        private async Task SaveAsync(SaveReason reason = SaveReason.ManualSave)
         {
             if (!SelectedItem.IsNew)
             {
                 StartLongOperation();
                 try
                 {
-                    await _fileModelService.SaveAsync(SelectedItem);
+                    await _fileModelService.SaveAsync(SelectedItem, reason);
                     RaisePropertyChanged(nameof(Title));
+                    RaisePropertyChanged(nameof(CanExecutePreviousVersions));
+                    PreviousVersionsCmd?.RaiseCanExecuteChanged();
                     IsAutoSaveFailed = false;
                 }
                 catch (System.IO.IOException ex)
@@ -654,7 +673,35 @@ namespace Savaged.BlackNotepad.ViewModels
             if (result == true)
             {
                 SelectedItem.Location = _saveFileDialog.FileName;
-                await SaveAsync();
+                await SaveAsync(SaveReason.SaveAs);
+            }
+        }
+
+        private async void OnPreviousVersions()
+        {
+            var targetItem = SelectedItem;
+            if (targetItem == null || targetItem.IsNew)
+            {
+                return;
+            }
+
+            try
+            {
+                var vm = _dialogService.GetDialogViewModel<IHistoryDialogViewModel>();
+                await vm.InitializeAsync(targetItem.Location);
+                var result = _dialogService.ShowDialog(vm);
+                if (result == true && vm.IsRestored)
+                {
+                    targetItem.Content = vm.RestoredContent;
+                    targetItem.IsDirty = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Failed to open Previous Versions: {ex.Message}");
+                _dialogService.ShowDialog(
+                    $"Could not open Previous Versions: {ex.Message}",
+                    "Black Notepad");
             }
         }
 
@@ -1249,6 +1296,11 @@ namespace Savaged.BlackNotepad.ViewModels
                     RaisePropertyChanged(nameof(IsSelectAllEnabled));
                     RaisePropertyChanged(nameof(WordCount));
                     break;
+                case nameof(SelectedItem.Location):
+                case nameof(SelectedItem.IsNew):
+                    RaisePropertyChanged(nameof(CanExecutePreviousVersions));
+                    PreviousVersionsCmd?.RaiseCanExecuteChanged();
+                    break;
                 case nameof(SelectedItem.LineEnding):
                     // Line ending changes do not affect any displayed UI properties
                     // (WordCount depends on Content, not LineEnding; GoTo/FindNext
@@ -1285,7 +1337,7 @@ namespace Savaged.BlackNotepad.ViewModels
                 // returns to the UI thread.
                 var content = SelectedItem.Content;
                 SelectedItem.Content = await Task.Run(
-                    () => PrettifyJsonText(content));
+                    () => content.PrettifyJson());
             }
             catch (JsonException)
             {
@@ -1300,23 +1352,6 @@ namespace Savaged.BlackNotepad.ViewModels
             }
         }
 
-        /// <summary>
-        /// Parses and re-serializes JSON with indentation. Pure CPU-bound
-        /// work with no UI access, safe to run on a pool thread.
-        /// </summary>
-        /// <param name="content">Raw JSON text to prettify.</param>
-        /// <returns>Indented JSON text.</returns>
-        private static string PrettifyJsonText(string content)
-        {
-            using (var stringReader = new StringReader(content))
-            using (var jsonReader = new JsonTextReader(stringReader) { DateParseHandling = DateParseHandling.None })
-            using (var stringWriter = new StringWriter())
-            using (var jsonWriter = new JsonTextWriter(stringWriter) { Formatting = Formatting.Indented })
-            {
-                jsonWriter.WriteToken(jsonReader);
-                return stringWriter.ToString();
-            }
-        }
 
         /// <summary>
         /// Adds the specified file path to the top of the Recent Files list.
@@ -1359,7 +1394,7 @@ namespace Savaged.BlackNotepad.ViewModels
             {
                 try
                 {
-                    await SaveAsync();
+                    await SaveAsync(SaveReason.AutoSave);
                 }
                 catch (Exception ex)
                 {
