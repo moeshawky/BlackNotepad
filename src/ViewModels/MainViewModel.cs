@@ -742,26 +742,35 @@ namespace Savaged.BlackNotepad.ViewModels
                 lineCharToInclude = 1;
             }
             var text = SelectedItem.Content;
-            var linesCounted = 0;
-            var charsInLine = 0;
-            for (int i = 0; i < text.Length; i++)
-            {
-                charsInLine++;
-                if (text[i] == lineEndingChar
-                    || i == text.Length - 1)
-                {
-                    linesCounted++;
-                    if (lineNumberSought == linesCounted)
-                    {
-                        var lineStartPosition =
-                            i + lineCharToInclude - charsInLine;
+            if (string.IsNullOrEmpty(text)) return;
 
-                        RaiseGoToRequested(
-                            lineStartPosition, 0, lineNumberSought);
-                        break;
-                    }
-                    charsInLine = 0;
+            var linesCounted = 0;
+            var lastIndex = -1;
+
+            while (linesCounted < lineNumberSought)
+            {
+                var index = text.IndexOf(lineEndingChar, lastIndex + 1);
+                var isLastSegment = index == -1;
+
+                if (isLastSegment)
+                {
+                    index = text.Length - 1;
                 }
+
+                linesCounted++;
+
+                if (linesCounted == lineNumberSought)
+                {
+                    var charsInLine = index - lastIndex;
+                    var lineStartPosition = index + lineCharToInclude - charsInLine;
+
+                    RaiseGoToRequested(
+                        lineStartPosition, 0, lineNumberSought);
+                    break;
+                }
+
+                if (isLastSegment) break;
+                lastIndex = index;
             }
         }
 
