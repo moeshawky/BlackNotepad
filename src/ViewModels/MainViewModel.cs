@@ -9,6 +9,7 @@ using Savaged.BlackNotepad.Services;
 using Savaged.BlackNotepad.ViewsInterfaces;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Deployment.Application;
@@ -866,23 +867,20 @@ namespace Savaged.BlackNotepad.ViewModels
 
                 var replacement = _replaceDialog?.ReplacementText;
 
-                var textPrior = string.Empty;
-                // Ordinal-free IndexOf with the same comparison FindNext uses,
-                // avoiding the two full-document ToLower copies.
-                if (content.IndexOf(TextSought, comparison) >= 0)
+                var indexOfTextFound = replacement.Length;
+                // Bolt: Validates match using string.Compare with string indices instead
+                // of an O(N) full document scan, and string.Remove(...).Insert(...)
+                // for faster string mutation compared to allocating multiple substrings.
+                var isMatchAtCaret = IndexOfCaret >= 0
+                    && IndexOfCaret + TextSought.Length <= content.Length
+                    && string.Compare(content, IndexOfCaret, TextSought, 0, TextSought.Length, comparison) == 0;
+
+                if (isMatchAtCaret)
                 {
-                    textPrior = content.Substring(0, IndexOfCaret);
-
-                    var textAfter = content.Substring(
-                        IndexOfCaret + TextSought.Length);
-
-                    content = string.Concat(
-                        textPrior, replacement, textAfter);
+                    content = content.Remove(IndexOfCaret, TextSought.Length).Insert(IndexOfCaret, replacement);
+                    indexOfTextFound = IndexOfCaret + replacement.Length;
                 }
                 SelectedItem.Content = content;
-
-                var indexOfTextFound = textPrior.Length +
-                    replacement.Length;
 
                 RaiseGoToRequested(
                     indexOfTextFound, 
@@ -980,32 +978,47 @@ namespace Savaged.BlackNotepad.ViewModels
                 lineNumberSought = 1;
             }
 
-            // Single pass: the prior version scanned once to clamp the line
-            // number, then scanned again with identical per-line arithmetic
-            // to locate the offset. Track the last line start so the
-            // beyond-end clamp needs no second scan. Per-line arithmetic is
-            // unchanged.
-            var charsInLine = 0;
+            // Bolt: Optimized GoTo using IndexOf instead of an unoptimized O(N) character-by-character scan,
+            // explicitly handling empty strings, trailing lines, and specific lineCharToInclude logic
+            // to perfectly maintain legacy bug-for-bug indexing behavior.
             var linesCounted = 0;
+            var position = text.IndexOf(lineEndingChar);
             var lastLineStart = 0;
-            for (int i = 0; i < text.Length; i++)
+            int previousPosition = -1;
+
+            while (position >= 0)
             {
-                charsInLine++;
-                if (text[i] == lineEndingChar
-                    || i == text.Length - 1)
+                linesCounted++;
+                int charsInLine = position - previousPosition;
+                int lineStartPosition = position + lineCharToInclude - charsInLine;
+
+                if (lineNumberSought == linesCounted)
                 {
-                    linesCounted++;
-                    var lineStartPosition =
-                        i + lineCharToInclude - charsInLine;
-                    if (lineNumberSought == linesCounted)
-                    {
-                        RaiseGoToRequested(
-                            lineStartPosition, 0, lineNumberSought);
-                        return;
-                    }
-                    lastLineStart = lineStartPosition;
-                    charsInLine = 0;
+                    RaiseGoToRequested(lineStartPosition, 0, lineNumberSought);
+                    return;
                 }
+
+                lastLineStart = lineStartPosition;
+                previousPosition = position;
+
+                if (position == text.Length - 1) break;
+
+                position = text.IndexOf(lineEndingChar, position + 1);
+            }
+
+            if (text.Length > 0 && text[text.Length - 1] != lineEndingChar)
+            {
+                linesCounted++;
+                int charsInLine = text.Length - 1 - previousPosition;
+                int lineStartPosition = text.Length - 1 + lineCharToInclude - charsInLine;
+
+                if (lineNumberSought == linesCounted)
+                {
+                    RaiseGoToRequested(lineStartPosition, 0, lineNumberSought);
+                    return;
+                }
+
+                lastLineStart = lineStartPosition;
             }
 
             RaiseGoToRequested(lastLineStart, 0, linesCounted);
@@ -1295,8 +1308,14 @@ namespace Savaged.BlackNotepad.ViewModels
         /// <returns>Indented JSON text.</returns>
         private static string PrettifyJsonText(string content)
         {
-            dynamic parsed = JsonConvert.DeserializeObject(content);
-            return JsonConvert.SerializeObject(parsed, Formatting.Indented);
+            using (var stringReader = new StringReader(content))
+            using (var jsonReader = new JsonTextReader(stringReader) { DateParseHandling = DateParseHandling.None })
+            using (var stringWriter = new StringWriter())
+            using (var jsonWriter = new JsonTextWriter(stringWriter) { Formatting = Formatting.Indented })
+            {
+                jsonWriter.WriteToken(jsonReader);
+                return stringWriter.ToString();
+            }
         }
 
         /// <summary>
