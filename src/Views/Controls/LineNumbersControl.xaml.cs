@@ -155,12 +155,19 @@ namespace Savaged.BlackNotepad.Views.Controls
                 return;
             }
             var count = Math.Max(1, LineCount);
-            var lines = new string[count];
-            for (int i = 0; i < count; i++)
+            // Pre-size the builder: average 5 characters per number plus newline.
+            // Avoids O(N) string array allocations, individual string object creations,
+            // and the final giant string.Join allocation.
+            var sb = new System.Text.StringBuilder(count * (5 + Environment.NewLine.Length));
+            for (int i = 1; i <= count; i++)
             {
-                lines[i] = (i + 1).ToString();
+                sb.Append(i);
+                if (i < count)
+                {
+                    sb.AppendLine();
+                }
             }
-            LineNumberTextBlock.Text = string.Join(Environment.NewLine, lines);
+            LineNumberTextBlock.Text = sb.ToString();
         }
     }
 }
