@@ -6,29 +6,29 @@ All notable changes to this project will be documented in this file.
 
 ## [1.1.7] - 2026-10-26
 
+### Added
+- Previous Versions / File History: browse and restore local revisions with native Win32 msdelta.dll delta compression (`File -> Previous Versions...`)
+- Public StringEx.PrettifyJson extension method with streaming token indentation supporting multi-token JSON payloads (`Edit -> Prettify JSON`, `F12`)
+- Standard Print command (`File -> Print...`, `Ctrl+P`) directly launching system print dialog
+- Browser launch for project documentation from Help (`Help -> Help`, `F1`) with dialog fallback
+- Empty-state handling for Recent Files (`Recent Files` menu item disabled when empty)
+- Automated unit, ViewModel, and container integration test suite (81 tests total) in CI workflow
+
 ### Fixed
 - Fatal startup crash (`ActivationException`) caused by SimpleIoc constructor ambiguity in `FileModelService`: marked `FileModelService(IFileHistoryService)` with `[PreferredConstructor]`
 - SimpleIoc resolution failure for `IFileHistoryService` caused by unresolvable optional string parameter: added parameterless `FileHistoryService()` constructor with `[PreferredConstructor]`
 - Injected `IFileHistoryService` dependency into `FileModelService` in production DI container, preventing silent document history capability downgrade
-
-### Added
-- Automated container integration tests (`ContainerResolutionTests.cs`) verifying SimpleIoc registration and resolution of all application services and ViewModels (78 tests total)
-
-## [1.1.6] - 2026-10-26
-
-### Added
-- Previous Versions / File History: browse and restore local revisions with native Win32 msdelta.dll delta compression
-- Public StringEx.PrettifyJson extension method with streaming token indentation supporting multi-token JSON payloads
-- Automated unit and ViewModel test execution step in GitHub Actions CI workflow (.github/workflows/build.yml)
-- Comprehensive test fixtures for StringEx and HistoryDialogViewModel (73 tests total)
-
-### Fixed
+- Replaced misleading "Print Preview..." with "_Print..." and bound standard shortcut `Ctrl+P`
+- Removed misleading ellipsis from "Select All" menu item
+- Synced editor Undo enabling with `TextBox.CanUndo` so Undo remains available after saving
 - Error containment in Previous Versions dialog: failed preview loads disable the restore command, preventing error strings from overwriting document buffers
 - TOCTOU tab-switch race in MainViewModel.OnPreviousVersions: captures target document reference before asynchronous dialog initialization
 - Circular reference and duplicate VersionId guards in FileHistoryService manifest parsing
 - 11-parameter Win32 CreateDeltaB ABI signature (DELTA_FILE_TYPE_RAW), 0-byte buffer, and integer overflow guards in MsDeltaCodec native P/Invoke
 - Null-safety guard on ViewState.SelectedFontZoom during MainViewModel construction and IndexOfCaret synchronization in RaiseGoToRequested
 - Upstream GPLv2 headers restored across all newly added source and test files
+
+*(Note: v1.1.6 was yanked due to the SimpleIoc startup issue; all changes are rolled into v1.1.7).*
 
 ## [1.1.5] - 2026-09-03
 

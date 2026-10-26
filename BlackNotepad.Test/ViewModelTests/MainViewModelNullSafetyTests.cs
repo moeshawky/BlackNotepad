@@ -127,6 +127,37 @@ namespace BlackNotepad.Test.ViewModelTests
             Assert.IsNotNull(MainVm.ViewState.SelectedFontFamily);
         }
 
+        [TestMethod]
+        public void PrintCmd_IsInitialized_AndPrintPreviewCmdAliasesPrintCmd()
+        {
+            var vm = CreateMainViewModel();
+            Assert.IsNotNull(vm.PrintCmd);
+            Assert.AreSame(vm.PrintCmd, vm.PrintPreviewCmd);
+        }
+
+        [TestMethod]
+        public void HasRecentFiles_ReturnsFalseWhenEmpty_AndTrueWhenPopulated()
+        {
+            var vm = CreateMainViewModel();
+            vm.ViewState.RecentFiles.Clear();
+            Assert.IsFalse(vm.HasRecentFiles);
+
+            vm.ViewState.RecentFiles.Add(@"C:\test\sample.txt");
+            Assert.IsTrue(vm.HasRecentFiles);
+        }
+
+        [TestMethod]
+        public void IsUndoEnabled_ResponsiveToCanUndo_EvenWhenNotDirty()
+        {
+            var vm = CreateMainViewModel();
+            vm.SelectedItem.IsDirty = false;
+            vm.CanUndo = false;
+            Assert.IsFalse(vm.IsUndoEnabled);
+
+            vm.CanUndo = true;
+            Assert.IsTrue(vm.IsUndoEnabled);
+        }
+
         private MainViewModel CreateMainViewModel(
             IViewStateService viewStateService = null,
             IFileModelService fileModelService = null,

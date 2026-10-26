@@ -1,10 +1,10 @@
-# BlackNotepad Community Fork 📝
+# BlackNotepad 📝
 
 > A modern, dark-themed text editor for Windows with file association handling and UTF-8 encoding.
 
 ---
 
-**Fork Notice:** This is a community-maintained fork of [savaged/BlackNotepad](https://github.com/savaged/BlackNotepad) (upstream archived since 2024). Issues and releases are handled here.
+**Fork Notice:** This fork of [savaged/BlackNotepad](https://github.com/savaged/BlackNotepad) (upstream archived since 2024) is maintained by [Moe S.](https://github.com/moeshawky). Issues and releases are handled here.
 
 [![License: GPL v2](https://img.shields.io/badge/License-GPLv2-blue.svg)](LICENSE)
 [![.NET Framework](https://img.shields.io/badge/.NET-4.7.2-yellow.svg)](https://dotnet.microsoft.com/download/dotnet-framework/net472)

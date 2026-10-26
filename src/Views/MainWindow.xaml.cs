@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Savaged.BlackNotepad.Services;
 using Savaged.BlackNotepad.ViewModels;
 using System.ComponentModel;
@@ -46,6 +46,10 @@ namespace Savaged.BlackNotepad.Views
             Activated += OnWindowActivated;
 
             // Set initial state since TextChanged does not fire on initial load
+            if (_viewModel != null)
+            {
+                _viewModel.CanUndo = ContentText.CanUndo;
+            }
             SyncScrollState();
 
             if (_themeService != null && _viewModel?.ViewState != null)
@@ -158,7 +162,11 @@ namespace Savaged.BlackNotepad.Views
 
         private void OnUndoMenuItemClick(object sender, RoutedEventArgs e)
         {
-            ContentText.Undo(); 
+            ContentText.Undo();
+            if (_viewModel != null)
+            {
+                _viewModel.CanUndo = ContentText.CanUndo;
+            }
         }
 
         private void OnCutMenuItemClick(object sender, RoutedEventArgs e)
@@ -194,11 +202,19 @@ namespace Savaged.BlackNotepad.Views
 
         private void OnContentTextTextChanged(object sender, TextChangedEventArgs e)
         {
+            if (_viewModel != null)
+            {
+                _viewModel.CanUndo = ContentText.CanUndo;
+            }
             SyncScrollState();
         }
 
         private void OnContentTextSizeChanged(object sender, SizeChangedEventArgs e)
         {
+            if (_viewModel != null)
+            {
+                _viewModel.CanUndo = ContentText.CanUndo;
+            }
             SyncScrollState();
         }
 

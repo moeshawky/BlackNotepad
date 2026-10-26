@@ -1,4 +1,4 @@
-﻿using GalaSoft.MvvmLight;
+using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.CommandWpf;
 using Microsoft.Win32;
 using Newtonsoft.Json;
@@ -13,6 +13,7 @@ using System.IO;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Deployment.Application;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -156,7 +157,11 @@ namespace Savaged.BlackNotepad.ViewModels
                 OnFontFamily, (b) => CanExecute);
             PrettifyJsonCmd = new RelayCommand(
                 OnPrettifyJson, () => CanExecutePrettifyJson);
-            PrintPreviewCmd = new RelayCommand(OnPrintPreview, () => CanExecute);
+            PrintCmd = new RelayCommand(OnPrint, () => CanExecute);
+            if (ViewState?.RecentFiles != null)
+            {
+                ViewState.RecentFiles.CollectionChanged += (s, e) => RaisePropertyChanged(nameof(HasRecentFiles));
+            }
             ThemeModeCmd = new RelayCommand<string>(
                 OnThemeMode, (m) => CanExecute);
             LineNumbersCmd = new RelayCommand(OnLineNumbers, () => CanExecute);
@@ -370,7 +375,15 @@ namespace Savaged.BlackNotepad.ViewModels
         public RelayCommand<FontColourModel> FontColourCmd { get; }
         public RelayCommand<FontFamilyModel> FontFamilyCmd { get; }
         public RelayCommand PrettifyJsonCmd { get; }
-        public RelayCommand PrintPreviewCmd { get; }
+        /// <summary>
+        /// Gets the command to print the current document.
+        /// </summary>
+        public RelayCommand PrintCmd { get; }
+
+        /// <summary>
+        /// Gets the legacy alias command for printing.
+        /// </summary>
+        public RelayCommand PrintPreviewCmd => PrintCmd;
         public RelayCommand<string> ThemeModeCmd { get; }
         public RelayCommand LineNumbersCmd { get; }
 
@@ -467,8 +480,35 @@ namespace Savaged.BlackNotepad.ViewModels
 
 
 
+        private bool _canUndo;
+
+        /// <summary>
+        /// Gets or sets a value indicating whether the editor has an active undo history.
+        /// </summary>
+        public bool CanUndo
+        {
+            get => _canUndo;
+            set
+            {
+                if (_canUndo != value)
+                {
+                    _canUndo = value;
+                    RaisePropertyChanged(nameof(CanUndo));
+                    RaisePropertyChanged(nameof(IsUndoEnabled));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether any recent files exist.
+        /// </summary>
+        public bool HasRecentFiles => ViewState?.RecentFiles != null && ViewState.RecentFiles.Count > 0;
+
+        /// <summary>
+        /// Gets a value indicating whether the Undo command is enabled.
+        /// </summary>
         public bool IsUndoEnabled => !IsBusy &&
-            SelectedItem.IsDirty;
+            (_canUndo || SelectedItem.IsDirty);
 
         public bool IsCutOrCopyEnabled => !IsBusy &&
             !string.IsNullOrEmpty(SelectedText);
@@ -1179,15 +1219,20 @@ namespace Savaged.BlackNotepad.ViewModels
             ViewState.IsStatusBarVisible = !ViewState.IsStatusBarVisible;
         }
 
+        /// <summary>
+        /// Opens the project documentation in the default web browser, falling back to an informational dialog if browser launch fails.
+        /// </summary>
         private void OnHelp()
         {
-            StartLongOperation();
-
-            // No longer allowed by MS Store -> Process.Start("https://savaged.github.io/BlackNotepad/");
-            _dialogService.ShowDialog(
-                "Visit https://savaged.github.io/BlackNotepad/", "Help");
-
-            EndLongOpertation();
+            const string helpUrl = "https://github.com/moeshawky/BlackNotepad";
+            try
+            {
+                Process.Start(new ProcessStartInfo(helpUrl) { UseShellExecute = true });
+            }
+            catch
+            {
+                _dialogService.ShowDialog($"Visit {helpUrl}", "Help");
+            }
         }
 
         private void OnAbout()
@@ -1206,10 +1251,10 @@ namespace Savaged.BlackNotepad.ViewModels
                     .Version.ToString(3);
             }
             _dialogService.ShowDialog(
-                $"Community edition of BlackNotepad{Environment.NewLine}" +
-                $"Originally by savaged — continued by the community" +
-                $"{Environment.NewLine}{Environment.NewLine}" +
-                $"BlackNotepad v{productVersion}", 
+                $"BlackNotepad v{productVersion}{Environment.NewLine}{Environment.NewLine}" +
+                $"Maintained by Moe S. (https://github.com/moeshawky){Environment.NewLine}" +
+                $"Repository: https://github.com/moeshawky/BlackNotepad{Environment.NewLine}{Environment.NewLine}" +
+                $"Originally by savaged",
                 "About");
         }
 
@@ -1374,6 +1419,7 @@ namespace Savaged.BlackNotepad.ViewModels
                 }
             }
             recentFiles.Insert(0, path);
+            RaisePropertyChanged(nameof(HasRecentFiles));
             while (recentFiles.Count > 10)
             {
                 recentFiles.RemoveAt(recentFiles.Count - 1);
@@ -1408,9 +1454,9 @@ namespace Savaged.BlackNotepad.ViewModels
         }
 
         /// <summary>
-        /// Opens the system Print dialog to preview and print the current document.
+        /// Opens the system Print dialog to print the current document.
         /// </summary>
-        private void OnPrintPreview()
+        private void OnPrint()
         {
             if (SelectedItem is null || !SelectedItem.HasContent)
             {

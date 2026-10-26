@@ -1,4 +1,4 @@
-﻿<Window x:Class="Savaged.BlackNotepad.Views.MainWindow"
+<Window x:Class="Savaged.BlackNotepad.Views.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -33,7 +33,7 @@
         <KeyBinding Gesture="Ctrl+Minus" Command="{Binding ZoomOutCmd}"/>
         <KeyBinding Gesture="Ctrl+0" Command="{Binding RestoreDefaultZoomCmd}"/>
         <KeyBinding Key="F1" Command="{Binding HelpCmd}"/>
-        <KeyBinding Gesture="Ctrl+Shift+P" Command="{Binding PrintPreviewCmd}"/>
+        <KeyBinding Gesture="Ctrl+P" Command="{Binding PrintCmd}"/>
     </Window.InputBindings>
     <DockPanel FocusManager.FocusedElement="{Binding ElementName=ContentText}">
         <Menu DockPanel.Dock="Top" Margin="0,0,0.4,0" Background="{DynamicResource MenuBackgroundBrush}">
@@ -68,12 +68,13 @@
                 <MenuItem Header="Pre_vious Versions..."
                           Command="{Binding PreviousVersionsCmd}"/>
                 <Separator/>
-                <MenuItem Header="Print _Preview..."
-                          Command="{Binding PrintPreviewCmd}"
-                          InputGestureText="Ctrl+Shift+P"/>
+                <MenuItem Header="_Print..."
+                          Command="{Binding PrintCmd}"
+                          InputGestureText="Ctrl+P"/>
                 <Separator/>
                 <MenuItem Header="Recent _Files"
-                          ItemsSource="{Binding ViewState.RecentFiles}">
+                          ItemsSource="{Binding ViewState.RecentFiles}"
+                          IsEnabled="{Binding HasRecentFiles}">
                     <MenuItem.ItemContainerStyle>
                         <Style TargetType="MenuItem">
                             <Setter Property="Header" Value="{Binding}"/>
@@ -88,7 +89,7 @@
                           Command="{Binding ExitCmd}"/>
             </MenuItem>
             <MenuItem Header="_Edit">
-                <MenuItem Header="Undo"
+                <MenuItem Header="_Undo"
                           Click="OnUndoMenuItemClick"
                           InputGestureText="Ctrl+Z"
                           IsEnabled="{Binding IsUndoEnabled}"/>
@@ -119,14 +120,14 @@
                           Command="{Binding GoToCmd}"
                           InputGestureText="Ctrl+G"/>
                 <Separator/>
-                <MenuItem Header="Select _All..."
+                <MenuItem Header="Select _All"
                           Click="OnSelectAllMenuItemClick"
                           InputGestureText="Ctrl+A"
                           IsEnabled="{Binding IsSelectAllEnabled}"/>
                 <MenuItem Header="Time/_Date"
                           Command="{Binding TimeDateCmd}"
                           InputGestureText="F5"/>
-                <MenuItem Header="Prettify Json"
+                <MenuItem Header="Prettify _JSON"
                           Command="{Binding PrettifyJsonCmd}"
                           InputGestureText="F12"/>
             </MenuItem>
@@ -176,7 +177,9 @@
                 </MenuItem>
             </MenuItem>
             <MenuItem Header="_Help">
-                <MenuItem Header="_Help" Command="{Binding HelpCmd}"/>
+                <MenuItem Header="_Help"
+                          Command="{Binding HelpCmd}"
+                          InputGestureText="F1"/>
                 <Separator/>
                 <MenuItem Header="_About" Command="{Binding AboutCmd}"/>
             </MenuItem>
