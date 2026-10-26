@@ -30,6 +30,7 @@ namespace Savaged.BlackNotepad.ViewModels
         private readonly IDialogService _dialogService;
         private readonly IFileModelService _fileModelService;
         private readonly IThemeService _themeService;
+        private readonly IFontColourLookupService _fontColourLookupService;
         private readonly IList<string> _busyRegister;
         private readonly OpenFileDialog _openFileDialog;
         private readonly SaveFileDialog _saveFileDialog;
@@ -103,9 +104,11 @@ namespace Savaged.BlackNotepad.ViewModels
             _saveFileDialog.Filter = filter;
 
             _viewStateService = viewStateService;
+            _fontColourLookupService = fontColourLookupService;
             ViewState = _viewStateService.Open();
 
             FontColours = fontColourLookupService.GetIndex();
+            EnsureFontContrastForTheme(ResolveEffectiveTheme(ViewState.SelectedThemeMode));
             ApplySelectedOnFontColour();
 
             FontFamilyNames = fontFamilyLookupService.GetIndex();
@@ -1268,8 +1271,42 @@ namespace Savaged.BlackNotepad.ViewModels
         {
             if (Enum.TryParse<ThemeMode>(modeName, true, out var mode))
             {
+                var oldEffective = ResolveEffectiveTheme(ViewState.SelectedThemeMode);
+                var newEffective = ResolveEffectiveTheme(mode);
+
                 ViewState.SelectedThemeMode = mode;
                 _themeService.ApplyTheme(mode);
+
+                if (oldEffective != newEffective)
+                {
+                    EnsureFontContrastForTheme(newEffective);
+                }
+            }
+        }
+
+        private ThemeMode ResolveEffectiveTheme(ThemeMode mode)
+        {
+            if (mode == ThemeMode.System && _themeService != null)
+            {
+                return _themeService.GetEffectiveTheme();
+            }
+            return mode;
+        }
+
+        private void EnsureFontContrastForTheme(ThemeMode effectiveMode)
+        {
+            if (ViewState?.SelectedFontColour == null || _fontColourLookupService == null)
+            {
+                return;
+            }
+
+            var counterpart = _fontColourLookupService.GetCounterpart(
+                ViewState.SelectedFontColour, effectiveMode);
+
+            if (counterpart != null && !string.Equals(counterpart.Key, ViewState.SelectedFontColour.Key, StringComparison.OrdinalIgnoreCase))
+            {
+                ViewState.SelectedFontColour = counterpart;
+                ApplySelectedOnFontColour();
             }
         }
 

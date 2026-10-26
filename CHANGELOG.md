@@ -7,12 +7,15 @@ All notable changes to this project will be documented in this file.
 ## [1.1.7] - 2026-10-26
 
 ### Added
+- Expanded Font Colour palette to 12 curated colors (including Black, White, Matrix Green, Forest Green, Cyan, Navy, Amber, Dark Amber, Light Coral, Crimson, Light Gray, and Dark Slate Gray)
+- Tactful dynamic font color adaptation when toggling between Dark, Light, and System themes: automatically transitions font colors to reciprocal high-contrast counterparts while preserving the user's semantic color family and round-trip symmetry
+- Startup font contrast alignment to prevent legacy viewstates from opening with low-contrast or invisible text
 - Previous Versions / File History: browse and restore local revisions with native Win32 msdelta.dll delta compression (`File -> Previous Versions...`)
 - Public StringEx.PrettifyJson extension method with streaming token indentation supporting multi-token JSON payloads (`Edit -> Prettify JSON`, `F12`)
 - Standard Print command (`File -> Print...`, `Ctrl+P`) directly launching system print dialog
 - Browser launch for project documentation from Help (`Help -> Help`, `F1`) with dialog fallback
 - Empty-state handling for Recent Files (`Recent Files` menu item disabled when empty)
-- Automated unit, ViewModel, and container integration test suite (81 tests total) in CI workflow
+- Automated unit, ViewModel, and container integration test suite (92 tests total) in CI workflow
 
 ### Fixed
 - Fatal startup crash (`ActivationException`) caused by SimpleIoc constructor ambiguity in `FileModelService`: marked `FileModelService(IFileHistoryService)` with `[PreferredConstructor]`
