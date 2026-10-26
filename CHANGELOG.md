@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.1.7] - 2026-10-26
+
+### Fixed
+- Fatal startup crash (`ActivationException`) caused by SimpleIoc constructor ambiguity in `FileModelService`: marked `FileModelService(IFileHistoryService)` with `[PreferredConstructor]`
+- SimpleIoc resolution failure for `IFileHistoryService` caused by unresolvable optional string parameter: added parameterless `FileHistoryService()` constructor with `[PreferredConstructor]`
+- Injected `IFileHistoryService` dependency into `FileModelService` in production DI container, preventing silent document history capability downgrade
+
+### Added
+- Automated container integration tests (`ContainerResolutionTests.cs`) verifying SimpleIoc registration and resolution of all application services and ViewModels (78 tests total)
+
 ## [1.1.6] - 2026-10-26
 
 ### Added

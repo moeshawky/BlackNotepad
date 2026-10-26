@@ -1,3 +1,4 @@
+using GalaSoft.MvvmLight.Ioc;
 using Savaged.BlackNotepad.Lookups;
 using Savaged.BlackNotepad.Models;
 using System;
@@ -28,6 +29,7 @@ namespace Savaged.BlackNotepad.Services
         /// Initializes a new instance of the <see cref="FileModelService"/> class with the specified history service.
         /// </summary>
         /// <param name="historyService">The history service to record document revisions, or null to disable history recording.</param>
+        [PreferredConstructor]
         public FileModelService(IFileHistoryService historyService)
         {
             _historyService = historyService;

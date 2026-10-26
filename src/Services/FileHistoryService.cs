@@ -14,6 +14,7 @@
 // with this program; if not, write to the Free Software Foundation, Inc.,
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+using GalaSoft.MvvmLight.Ioc;
 using Newtonsoft.Json;
 using Savaged.BlackNotepad.Models;
 using System;
@@ -44,6 +45,15 @@ namespace Savaged.BlackNotepad.Services
 
         private readonly string _baseHistoryDirectory;
         private readonly ConcurrentDictionary<string, SemaphoreSlim> _dirLocks = new ConcurrentDictionary<string, SemaphoreSlim>();
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FileHistoryService"/> class with default settings.
+        /// </summary>
+        [PreferredConstructor]
+        public FileHistoryService()
+            : this(null)
+        {
+        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="FileHistoryService"/> class.

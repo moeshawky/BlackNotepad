@@ -93,6 +93,7 @@
     <Compile Include="ViewModelTests\TestBase.cs" />
     <Compile Include="ViewModelTests\MainViewModelNullSafetyTests.cs" />
     <Compile Include="ViewModelTests\HistoryDialogViewModelTests.cs" />
+    <Compile Include="UnitTests\ContainerResolutionTests.cs" />
     <Compile Include="UnitTests\CoordsToDisplayNameConverterTests.cs" />
     <Compile Include="UnitTests\LineEndingEnumToDisplayNameConverterTests.cs" />
     <Compile Include="UnitTests\FileHistoryServiceTests.cs" />
