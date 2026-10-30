@@ -5,6 +5,7 @@ using Savaged.BlackNotepad.ViewModels;
 using Savaged.BlackNotepad.Views;
 using System;
 using System.ComponentModel;
+using System.Collections.Generic;
 using System.Reflection;
 using System.Windows;
 
@@ -12,6 +13,8 @@ namespace Savaged.BlackNotepad.Services
 {
     public class DialogService : IDialogService
     {
+        private static Dictionary<string, Type> _dialogTypeCache;
+        private static readonly object _cacheLock = new object();
         private Dialog __visibleExclusiveDialog;
 
         public event EventHandler<IDialogDoneEventArgs> DialogDone =
@@ -183,26 +186,38 @@ namespace Savaged.BlackNotepad.Services
         /// <exception cref="InvalidOperationException">Thrown when no Dialog type matches the given name — this is a programming error, not a runtime condition.</exception>
         private Dialog GetDialog(string dialogName)
         {
-            Dialog value = null;
-            foreach (var t in Assembly.GetEntryAssembly().GetTypes())
+            // Bolt: Added thread-safe cache to eliminate expensive Assembly.GetTypes()
+            // reflection overhead on every dialog open, and added a fallback for
+            // GetEntryAssembly() to prevent NullReferenceException in test runners.
+            if (_dialogTypeCache == null)
             {
-                if (t.BaseType == typeof(Dialog)
-                   || t.BaseType?.BaseType == typeof(Dialog))
+                lock (_cacheLock)
                 {
-                    if (t.Name == dialogName)
+                    if (_dialogTypeCache == null)
                     {
-                        value = (Dialog)Activator.CreateInstance(t);
-                        break;
+                        var cache = new Dictionary<string, Type>();
+                        var assembly = Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly();
+                        foreach (var t in assembly.GetTypes())
+                        {
+                            if (t.BaseType == typeof(Dialog)
+                               || t.BaseType?.BaseType == typeof(Dialog))
+                            {
+                                cache[t.Name] = t;
+                            }
+                        }
+                        _dialogTypeCache = cache;
                     }
                 }
             }
-            if (value is null)
+
+            if (_dialogTypeCache.TryGetValue(dialogName, out var type))
             {
-                throw new InvalidOperationException(
-                    $"No Dialog type found matching '{dialogName}'. " +
-                    "Ensure a Dialog-derived class with this name exists in the entry assembly.");
+                return (Dialog)Activator.CreateInstance(type);
             }
-            return value;
+
+            throw new InvalidOperationException(
+                $"No Dialog type found matching '{dialogName}'. " +
+                "Ensure a Dialog-derived class with this name exists in the entry assembly.");
         }
     }
 }
