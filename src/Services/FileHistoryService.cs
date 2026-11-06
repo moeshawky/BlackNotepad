@@ -582,29 +582,30 @@ namespace Savaged.BlackNotepad.Services
             }
 
             DateTime cutoffUtc = DateTime.UtcNow - MaxRetentionAge;
+            long totalBytes = manifest.Versions.Sum(v => v.StoredSizeBytes);
 
             while (true)
             {
-                // Find all segment start indices (Depth == 0)
-                var baselineIndices = new List<int>();
-                for (int i = 0; i < manifest.Versions.Count; i++)
+                // Bolt: Optimized segment retention by pre-calculating totalBytes outside loop
+                // and short-circuiting the baseline index scan early instead of an O(N^2) scan.
+                int firstSegmentEnd = -1;
+                for (int i = 1; i < manifest.Versions.Count; i++)
                 {
                     if (manifest.Versions[i].Depth == 0)
                     {
-                        baselineIndices.Add(i);
+                        firstSegmentEnd = i;
+                        break;
                     }
                 }
 
                 // If only 1 segment exists, we cannot prune it without losing historical baseline continuity
-                if (baselineIndices.Count <= 1)
+                if (firstSegmentEnd == -1)
                 {
                     break;
                 }
 
-                int firstSegmentEnd = baselineIndices[1]; // First segment is [0 ... firstSegmentEnd - 1]
                 var firstSegmentLastVersion = manifest.Versions[firstSegmentEnd - 1];
 
-                long totalBytes = manifest.Versions.Sum(v => v.StoredSizeBytes);
                 bool isExpired = firstSegmentLastVersion.TimestampUtc < cutoffUtc;
                 bool isCountExceeded = manifest.Versions.Count > MaxVersionsRetention;
                 bool isSizeExceeded = totalBytes > MaxTotalSizeBytesRetention;
@@ -618,6 +619,7 @@ namespace Savaged.BlackNotepad.Services
                 for (int i = 0; i < firstSegmentEnd; i++)
                 {
                     var ver = manifest.Versions[i];
+                    totalBytes -= ver.StoredSizeBytes;
                     try
                     {
                         string path = Path.Combine(historyDir, ver.PayloadFileName);
